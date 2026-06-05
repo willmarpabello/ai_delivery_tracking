@@ -1,0 +1,814 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Added Leaflet CSS explicitly for the map to render accurately -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+    :root {
+        --primary-bg: #1a2b4c;
+        --secondary-bg: #2c4472;
+        --accent-color: #0d6efd;
+        --body-bg: #f4f6fb;
+        --card-border-radius: 16px;
+    }
+
+    body {
+        background-color: var(--body-bg);
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        color: #333333;
+        overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        width: 260px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background: var(--primary-bg);
+        color: white;
+        padding: 24px 16px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1030;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-box {
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 4px;
+        color: rgba(255, 255, 255, 0.75);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+    }
+
+    .nav-item i {
+        font-size: 1.2rem;
+    }
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+    }
+
+    .nav-item.active-menu {
+        background: var(--secondary-bg);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+    }
+
+    /* MAIN CONTAINER */
+    .main {
+        margin-left: 260px;
+        padding: 30px;
+        min-height: 100vh;
+        transition: margin-left 0.3s ease;
+    }
+
+    /* TOPBAR */
+    .topbar {
+        background: #ffffff;
+        padding: 16px 24px;
+        border-radius: var(--card-border-radius);
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    /* CARDS */
+    .card-box {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: var(--card-border-radius);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    /* STATUS BADGES */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .status-green { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+    .status-yellow { background: #fffde7; color: #f57f17; border: 1px solid #fff9c4; }
+    .status-red { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+    #map {
+        width: 100%;
+        height: 410px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    /* SECTIONS toggle utility */
+    .section { display: none; }
+    .active-section { display: block; animation: fadeIn 0.4s ease forwards; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* MENU HAMBURGER */
+    .menu-btn {
+        font-size: 24px;
+        cursor: pointer;
+        display: none;
+        color: var(--primary-bg);
+    }
+
+    /* LIVE FEED STREAM */
+    .camera-monitor-box {
+        position: relative;
+        width: 100%;
+        height: 240px;
+        background: #111111;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #customerCameraView {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .camera-tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 10;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* RESPONSIVE LAYOUT */
+    @media (max-width: 991px) {
+        .sidebar {
+            transform: translateX(-100%);
+        }
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        .main {
+            margin-left: 0;
+            padding: 16px;
+        }
+        .menu-btn {
+            display: block;
+        }
+    }
+    
+    .clickable-row {
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .clickable-row:hover {
+        background-color: rgba(13, 110, 253, 0.04);
+    }
+</style>
+</head>
+
+<body>
+
+<div class="modal-backdrop fade show d-none" id="sidebarBackdrop" onclick="toggleSidebar()" style="z-index: 1020;"></div>
+
+<!-- SIDEBAR NAVIGATION -->
+<div class="sidebar" id="sidebar">
+    <div class="profile-box">
+        {% if request.user.profile_picture %}
+            <img src="{{ request.user.profile_picture.url }}" width="70" height="70" class="rounded-circle mb-2 border border-2 border-white-50">
+        {% else %}
+            <i class="bi bi-person-circle text-white d-block mb-2" style="font-size:45px;"></i>
+        {% endif %}
+        <h6 class="mb-1 text-truncate px-2">{{ request.user.username }}</h6>
+        <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1 small fw-medium">
+            <i class="bi bi-circle-fill me-1" style="font-size:0.55rem;"></i> Active Client
+        </span>
+    </div>
+
+    <div class="nav-item active-menu" onclick="showSection('dashboard', this)">
+        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </div>
+
+    <div class="nav-item" onclick="showSection('orders', this)">
+        <i class="bi bi-box-seam-fill"></i> Orders & Tracking
+    </div>
+
+    <div class="nav-item" onclick="showSection('activity', this)">
+        <i class="bi bi-clock-history"></i> Activity Audit
+    </div>
+
+    <div class="nav-item" onclick="showSection('profile', this)">
+        <i class="bi bi-person-bounding-box"></i> Profile Settings
+    </div>
+
+    <div class="sidebar-footer w-100">
+        <a href="{% url 'logout' %}" class="nav-item text-white bg-danger-subtle bg-opacity-10 text-danger-emphasis m-0">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="main">
+    <!-- TOPBAR METRICS -->
+    <div class="topbar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-list menu-btn" onclick="toggleSidebar()"></i>
+            <h5 id="breadcrumb" class="mb-0 fw-semibold text-dark">Dashboard</h5>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small d-none d-sm-inline">System Server Time</span>
+            <span class="badge bg-light text-dark border px-2.5 py-1.5 font-monospace" id="liveClock">--:--</span>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD VIEW -->
+    <div id="dashboard" class="section active-section">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
+            <div>
+                <h4 class="fw-bold tracking-tight mb-1 text-dark">System Overview</h4>
+                <small class="text-muted">Real-time delivery monitoring pipeline and automated anomaly detection</small>
+            </div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-wifi me-1"></i> System Online
+            </span>
+        </div>
+
+        {% for d in recent_deliveries %}
+            {% if d.alert_triggered %}
+            <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4 p-3 rounded-4">
+                <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
+                <div>
+                    <strong class="text-danger-emphasis">AI Anomalous Alert Triggered</strong><br>
+                    <span class="small text-muted">Rider GPS coordinates deviations detected for Delivery assignment <b>#{{ d.id }}</b>. Customer security nodes and network administration staff have been automatically notified.</span>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- METRIC COUNTERS -->
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="card-box metric-card text-center h-100 d-flex flex-column justify-content-center" onclick="showSection('orders')" style="cursor:pointer;">
+                    <div class="mx-auto mb-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-box-seam fs-4"></i>
+                    </div>
+                    <span class="text-muted small fw-medium d-block mb-1">Total Deliveries</span>
+                    <h2 class="fw-bold mb-0 text-dark">{{ delivery_count }}</h2>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card-box metric-card text-center h-100 d-flex flex-column justify-content-center">
+                    <div class="mx-auto mb-2 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-check-circle fs-4"></i>
+                    </div>
+                    <span class="text-muted small fw-medium d-block mb-1">Delivered</span>
+                    <h2 class="fw-bold mb-0 text-success">{{ delivered_count }}</h2>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card-box metric-card text-center h-100 d-flex flex-column justify-content-center">
+                    <div class="mx-auto mb-2 bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-clock fs-4"></i>
+                    </div>
+                    <span class="text-muted small fw-medium d-block mb-1">Pending</span>
+                    <h2 class="fw-bold mb-0 text-warning">{{ pending_count }}</h2>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card-box metric-card text-center h-100 d-flex flex-column justify-content-center">
+                    <div class="mx-auto mb-2 bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-bicycle fs-4"></i>
+                    </div>
+                    <span class="text-muted small fw-medium d-block mb-1">In Transit</span>
+                    <h2 class="fw-bold mb-0 text-info">{{ transit_count }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 g-4">
+            <!-- RECENT ORDERS SNAPSHOT TABLE -->
+            <div class="col-lg-7">
+                <div class="card-box h-100">
+                    <h5 class="fw-bold text-dark mb-3">Recent Consignments</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr class="small text-uppercase">
+                                    <th>ID</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in recent_deliveries %}
+                                <tr>
+                                    <td><b>#{{ d.id }}</b></td>
+                                    <td>
+                                        <span class="badge {% if d.status == 'Delivered' %}bg-success-subtle text-success{% elif d.status == 'In Transit' %}bg-info-subtle text-info{% else %}bg-warning-subtle text-warning-emphasis{% endif %} rounded-pill">
+                                            {{ d.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="showSection('orders'); selectTrackOrder('{{ d.id }}', '{{ d.rider.username }}');">Manage</button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">No recent data packet profiles.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAMEWORK STATS -->
+            <div class="col-lg-5">
+                <div class="card-box h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-3">System Hub Framework</h5>
+                        <div class="small">
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted"><i class="bi bi-bicycle me-2"></i>Active Node Couriers</span>
+                                <span class="fw-bold text-dark">{{ riders.count|default:"Online" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted"><i class="bi bi-people me-2"></i>Client Cluster Signature</span>
+                                <span class="fw-bold text-dark">ID #{{ request.user.id }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted"><i class="bi bi-shield-exclamation me-2"></i>Anomalous Exceptions</span>
+                                <span class="fw-bold {% if failed_count > 0 %}text-danger{% else %}text-muted{% endif %}">{{ failed_count|default:"0" }} Flagged</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDERS & ACTIVE TELEMETRY LOGISTICS -->
+    <div id="orders" class="section">
+        <div class="card-box mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1">Your Delivery Ecosystem</h4>
+                    <p class="text-muted small mb-0">Select an active order below to map its live telemetry matrix and hook POV camera feeds.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase small">
+                        <tr>
+                            <th class="ps-3">ID</th>
+                            <th>Assigned Rider</th>
+                            <th>Status</th>
+                            <th>Target Node</th>
+                            <th>Timestamp</th>
+                            <th class="text-end pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in deliveries %}
+                        <tr class="clickable-row" onclick="selectTrackOrder('{{ d.id }}', '{{ d.rider.username }}')">
+                            <td class="ps-3"><b>#{{ d.id }}</b></td>
+                            <td class="text-secondary fw-medium">{{ d.rider.username|default:"System Selecting..." }}</td>
+                            <td>
+                                {% if d.status == "Delivered" %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">Delivered</span>
+                                {% elif d.status == "Pending" %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">Pending</span>
+                                {% elif d.status == "In Transit" %}
+                                    <span class="badge bg-info-subtle text-primary border border-info-subtle rounded-pill px-2.5 py-1">In Transit</span>
+                                {% elif d.status == "Waiting Confirmation" or d.status == "Arrived" %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">Waiting Verification</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">{{ d.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted text-truncate" style="max-width: 200px;">{{ d.address }}</td>
+                            <td class="small text-muted font-monospace">{{ d.created_at|date:"M d, Y H:i" }}</td>
+                            <td class="text-end pe-3">
+                                {% if d.status == "Delivered" %}
+                                    <!-- ARCHIVE BUTTON: Stays disabled as target is already safely completed -->
+                                    <button class="btn btn-sm btn-secondary rounded-pill px-3 py-1" disabled onclick="event.stopPropagation();">
+                                        <i class="bi bi-lock-fill"></i> Archive
+                                    </button>
+                                {% elif d.status == "Waiting Confirmation" or d.status == "Arrived" %}
+                                    <!-- ACCEPT ARRIVAL BUTTON: Updated routing structure -->
+                                    <form method="POST" action="{% url 'confirm_delivery' pk=d.id action='delivered' %}" class="d-inline" onclick="event.stopPropagation();">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm">
+                                            <i class="bi bi-check-circle-fill"></i> Verify Drop
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <!-- TRACK NODE BUTTON: Directly fires the map loading structure engine -->
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm" onclick="event.stopPropagation(); selectTrackOrder('{{ d.id }}', '{{ d.rider.username }}')">
+                                        <i class="bi bi-radar"></i> Track Node
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No historical delivery structures detected across this client profile link.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TRACKING HUD SYSTEM -->
+        <div id="trackingWorkspace" class="d-none mt-4">
+            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4 p-3 rounded-4 d-none" id="mapAlertBox">
+                <i class="bi bi-shield-exclamation fs-3 me-3 text-warning"></i>
+                <div id="mapAlertMessage">--</div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card-box h-100 p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-map me-2 text-primary"></i>Live Spatial Mapping Vector</h5>
+                                <small class="text-muted">Interactive vector array syncing dispatch pipelines</small>
+                            </div>
+                            <span class="badge bg-dark text-white font-monospace py-1.5 px-2.5" id="activeOrderDisplay">Order: #--</span>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="d-flex flex-column gap-4 h-100">
+                        <!-- REAL-TIME ANALYSIS ENGINE -->
+                        <div class="card-box">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line me-2 text-success"></i>Live Fleet Analytics</h5>
+                            
+                            <div class="status-indicator status-green w-100 justify-content-center mb-3" id="statusChip">
+                                <i class="bi bi-geo-alt-fill"></i> Transport Telemetry Online
+                            </div>
+
+                            <div class="mb-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">Courier Signature Link</span>
+                                <span id="statusRiderName" class="fw-bold text-dark small">--</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>Fulfillment Velocity</span>
+                                    <b id="statusSpeed" class="text-dark">0 km/h</b>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div id="speedBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>Route Horizon Integrity</span>
+                                    <b id="statusRoute" class="text-dark">Optimal</b>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div id="routeBar" class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <small class="text-muted text-uppercase font-monospace" style="font-size:0.65rem;">Last Heartbeat: <span id="statusUpdated">--</span></small>
+                            </div>
+                        </div>
+
+                        <!-- LIVE HANDLER CAMERA PORT -->
+                        <div class="card-box bg-dark text-white border-0">
+                            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2"><i class="bi bi-eye text-danger"></i> Rider Live POV Video Feed</h6>
+                            <div class="camera-monitor-box">
+                                <span class="badge bg-danger camera-tag"><i class="bi bi-record-fill text-white me-1"></i> SECURE AI LIVE LINK</span>
+                                <img id="customerCameraView" src="" alt="Awaiting secure connection tunnel from handler edge device..." class="text-white text-center small p-3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for d in deliveries %}
+            {% if d.status == "Waiting Confirmation" or d.status == "Arrived" and not d.customer_confirmed %}
+            <div class="alert bg-white border shadow-sm rounded-4 p-4 mt-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning-subtle text-warning p-2 rounded-3">
+                        <i class="bi bi-mailbox2 fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold text-dark">Consignment Complete: Awaiting Verification Signature</h6>
+                        <p class="mb-0 text-muted small">The courier assigned to consignment cluster <b>#{{ d.id }}</b> has flagged arrival status. Please verify physical package array configuration parameters before release authorization.</p>
+                    </div>
+                </div>
+                <!-- UPDATED CONFIRMATION ROUTE FOR CUSTOMERS -->
+                <form method="POST" action="{% url 'confirm_delivery' pk=d.id action='delivered' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-medium text-nowrap shadow-sm">
+                        <i class="bi bi-shield-check me-1"></i> Authorize Delivery Drop
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ACCOUNT TRANSACTION AUDITS -->
+    <div id="activity" class="section">
+        <div class="card-box">
+            <h4 class="fw-bold text-dark mb-4">Historical Architecture Logs</h4>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light text-uppercase small">
+                        <tr>
+                            <th>Sequence Node Event</th>
+                            <th>Reference Instance</th>
+                            <th>Verification Checksum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in deliveries %}
+                        <tr>
+                            <td><span class="text-dark fw-medium"><i class="bi bi-cpu-fill me-2 text-secondary"></i>Packet Entry Registration</span></td>
+                            <td>Delivery Assignment Record #{{ d.id }}</td>
+                            <td><span class="font-monospace small text-muted">{{ d.created_at|date:"Y-m-d H:i:s" }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE MANAGEMENT ENGINE -->
+    <div id="profile" class="section">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card-box text-center">
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" class="rounded-circle img-thumbnail mb-3 shadow-sm" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <i class="bi bi-person-circle text-secondary d-block mb-3" style="font-size: 80px;"></i>
+                    {% endif %}
+                    <h5 class="fw-bold text-dark mb-1">{{ request.user.username }}</h5>
+                    <span class="text-muted small d-block mb-3">{{ request.user.email|default:"no-email-assigned@system.network" }}</span>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="alert('Profile asset editing engine is restricted configuration level.')">Update Profile Photo</button>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card-box">
+                    <h5 class="fw-bold text-dark mb-4">Account Portfolio Configuration</h5>
+                    <form onsubmit="event.preventDefault(); alert('Profile settings stored across database registers successfully.');">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label text-muted small fw-medium">User Entity Label</label>
+                                <input type="text" class="form-control bg-light" value="{{ request.user.username }}" readonly>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label text-muted small fw-medium">E-Mail Endpoint</label>
+                                <input type="email" class="form-control bg-light" value="{{ request.user.email|default:'None Assigned' }}" readonly>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LEAFLET ROUTING PLUGINS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let adminMap, routeHistoryLine, riderMarker, destinationMarker;
+let trackingInterval = null;
+let streamSocket = null;
+let trackDeliveryId = null;
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarBackdrop').classList.toggle('d-none');
+}
+
+function showSection(sectionId, element = null) {
+    document.querySelectorAll('.section').forEach(sec => { sec.classList.remove('active-section'); });
+    const selectedSec = document.getElementById(sectionId);
+    if (selectedSec) { selectedSec.classList.add('active-section'); }
+
+    document.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active-menu'); });
+    if (element) {
+        element.classList.add('active-menu');
+    } else {
+        const matches = Array.from(document.querySelectorAll('.nav-item')).find(item => item.textContent.toLowerCase().includes(sectionId.toLowerCase()));
+        if(matches) matches.classList.add('active-menu');
+    }
+
+    document.getElementById('breadcrumb').textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+    
+    if (sectionId === 'orders' && trackDeliveryId) {
+        setTimeout(() => { if(adminMap) adminMap.invalidateSize(); }, 200);
+    }
+}
+
+function initDashboardMap() {
+    if (adminMap) return;
+    
+    // Default fallback initialization coords centered around system hubs
+    adminMap = L.map('map').setView([10.3157, 123.8854], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(adminMap);
+
+    const riderIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    });
+
+    const destIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-red.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    });
+
+    riderMarker = L.marker([0, 0], { icon: riderIcon }).addTo(adminMap).bindPopup("Current Rider Location");
+    destinationMarker = L.marker([0, 0], { icon: destIcon }).addTo(adminMap).bindPopup("Consignment Dropoff Target");
+    routeHistoryLine = L.polyline([], { color: '#0d6efd', weight: 4, opacity: 0.7 }).addTo(adminMap);
+}
+
+function selectTrackOrder(deliveryId, riderUsername) {
+    trackDeliveryId = deliveryId;
+    document.getElementById('trackingWorkspace').classList.remove('d-none');
+    document.getElementById('activeOrderDisplay').textContent = `Order: #${deliveryId}`;
+    document.getElementById('statusRiderName').textContent = riderUsername || "Assigning Courier Allocation Pool...";
+    
+    initDashboardMap();
+    
+    setTimeout(() => { if(adminMap) adminMap.invalidateSize(); }, 150);
+
+    if (trackingInterval) clearInterval(trackingInterval);
+    refreshTrackingMap();
+    trackingInterval = setInterval(refreshTrackingMap, 5000);
+
+    if (streamSocket) streamSocket.close();
+    connectMonitoringStream();
+}
+
+function setMapAlert(msg, type='warning') {
+    const box = document.getElementById('mapAlertBox');
+    const label = document.getElementById('mapAlertMessage');
+    if(!box || !label) return;
+    
+    label.textContent = msg;
+    box.className = `alert alert-${type} border-0 shadow-sm d-flex align-items-center mb-4 p-3 rounded-4`;
+    box.classList.remove('d-none');
+}
+
+function updateStatusUI(data) {
+    const chip = document.getElementById('statusChip');
+    const speed = document.getElementById('statusSpeed');
+    const sRoute = document.getElementById('statusRoute');
+    const speedBar = document.getElementById('speedBar');
+    const routeBar = document.getElementById('routeBar');
+    const timeStamp = document.getElementById('statusUpdated');
+
+    if(speed) speed.textContent = `${data.speed || 0} km/h`;
+    if(speedBar) speedBar.style.width = `${Math.min((data.speed || 0) * 1.5, 100)}%`;
+    if(timeStamp) timeStamp.textContent = new Date().toTimeString().split(' ')[0];
+
+    if(chip) {
+        if(data.alert || data.alert_triggered) {
+            chip.className = "status-indicator status-red w-100 justify-content-center mb-3";
+            chip.innerHTML = `<i class="bi bi-shield-fill-x"></i> Route Discrepancy Flagged`;
+            if(sRoute) sRoute.textContent = "Deviation Detected";
+            if(routeBar) { routeBar.className = "progress-bar bg-danger"; routeBar.style.width = "100%"; }
+        } else {
+            chip.className = "status-indicator status-green w-100 justify-content-center mb-3";
+            chip.innerHTML = `<i class="bi bi-geo-alt-fill"></i> Transport Telemetry Online`;
+            if(sRoute) sRoute.textContent = "Optimal Routing";
+            if(routeBar) { routeBar.className = "progress-bar bg-success"; routeBar.style.width = "100%"; }
+        }
+    }
+}
+
+function drawRoute(data) {
+    if (!adminMap) return;
+
+    const riderPos = [data.rider_latitude || data.latitude, data.rider_longitude || data.longitude];
+    const destPos = [data.destination_latitude || data.expected_latitude, data.destination_longitude || data.expected_longitude];
+
+    if (riderPos[0] && riderPos[1]) riderMarker.setLatLng(riderPos);
+    if (destPos[0] && destPos[1]) destinationMarker.setLatLng(destPos);
+
+    if (riderPos[0] && destPos[0]) {
+        const bounds = L.latLngBounds([riderPos, destPos]);
+        adminMap.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    if (data.history && data.history.length > 0) {
+        const path = data.history.map(pt => [pt.latitude, pt.longitude]);
+        routeHistoryLine.setLatLngs(path);
+    }
+}
+
+function refreshTrackingMap() {
+    if (!trackDeliveryId) return;
+    fetch(`/track/${trackDeliveryId}/data/`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success && !data.rider_latitude && !data.latitude) {
+                setMapAlert('Unable to fetch tracking parameters array.', 'danger');
+                return;
+            }
+            document.getElementById('mapAlertBox').classList.add('d-none');
+            updateStatusUI(data);
+            drawRoute(data);
+        })
+        .catch(() => {
+            setMapAlert('Live tracking service data network engine linking failure.', 'danger');
+        });
+}
+
+function connectMonitoringStream() {
+    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsUrl = wsScheme + window.location.host + "/ws/live-monitoring/";
+    
+    streamSocket = new WebSocket(wsUrl);
+    
+    streamSocket.onmessage = function(e) {
+        const payload = JSON.parse(e.data);
+        if (payload.stream) {
+            document.getElementById('customerCameraView').src = payload.stream;
+        }
+    };
+    
+    streamSocket.onclose = function() {
+        console.log("Telemetry video stream link down, re-establishing connection vector...");
+        setTimeout(connectMonitoringStream, 5000);
+    };
+}
+
+// System Time Clock Engine Loop
+setInterval(() => {
+    document.getElementById('liveClock').textContent = new Date().toTimeString().split(' ')[0];
+}, 1000);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

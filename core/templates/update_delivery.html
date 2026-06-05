@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Delivery #{{ delivery.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: #f4f6fb;
+            font-family: "Segoe UI", sans-serif;
+        }
+        .page-wrap {
+            min-height: 100vh;
+        }
+        .form-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .form-header-title {
+            background: linear-gradient(135deg, #0b1f3a, #1e3a5f);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container page-wrap py-5">
+    <div class="card form-card border-none w-100 mx-auto" style="max-width: 600px;">
+        
+        <div class="form-header-title text-white px-4 py-3 d-flex align-items-center justify-content-between">
+            <span class="fw-semibold">
+                <i class="bi bi-pencil-square me-2 text-warning"></i>Update Delivery #{{ delivery.id }}
+            </span>
+            <a href="javascript:history.back()" class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 opacity-90 hover-opacity-100 transition-all">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+        </div>
+
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="customer" class="form-label fw-medium text-secondary small">Customer</label>
+                    <select name="customer" id="customer" class="form-select text-dark" required>
+                        {% for c in customers %}
+                            <option value="{{ c.id }}" {% if c.id == delivery.customer.id %}selected{% endif %}>
+                                {{ c.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="rider" class="form-label fw-medium text-secondary small">Assigned Rider</label>
+                    <select name="rider" id="rider" class="form-select text-dark">
+                        <option value="" {% if not delivery.rider %}selected{% endif %}>-- Not Assigned --</option>
+                        {% for r in riders %}
+                            <option value="{{ r.id }}" {% if delivery.rider and r.id == delivery.rider.id %}selected{% endif %}>
+                                {{ r.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status" class="form-label fw-medium text-secondary small">Delivery Status</label>
+                    <select name="status" id="status" class="form-select text-dark" required>
+                        <option value="Pending" {% if delivery.status == "Pending" %}selected{% endif %}>Pending</option>
+                        <option value="Waiting Confirmation" {% if delivery.status == "Waiting Confirmation" %}selected{% endif %}>Waiting Confirmation</option>
+                        <option value="In Transit" {% if delivery.status == "In Transit" %}selected{% endif %}>In Transit</option>
+                        <option value="Delivered" {% if delivery.status == "Delivered" %}selected{% endif %}>Delivered</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="location" class="form-label fw-medium text-secondary small">Delivery Location</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-danger"><i class="bi bi-geo-alt"></i></span>
+                        <input type="text" name="location" id="location" class="form-control" value="{{ delivery.location }}" placeholder="Enter delivery address" required>
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25 my-4">
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success fw-medium py-2 shadow-sm d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

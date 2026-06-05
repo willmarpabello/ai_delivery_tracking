@@ -1,0 +1,305 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Delivery — Login</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-gradient-start: #1e293b;
+            --panel-gradient-end: #0f172a;
+            --accent-blue: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            overflow-x: hidden;
+        }
+
+        /* LEFT SIDE GRAPHIC OVERLAY */
+        .left-panel {
+            position: relative;
+            height: 100vh;
+            color: white;
+            padding: 60px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--panel-gradient-start) 0%, var(--panel-gradient-end) 100%);
+            border-right: 1px solid #334155;
+        }
+
+        /* 2D Grid Vector Underlay for modern visual interest */
+        .left-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+
+        /* FLAT HUD CARDS */
+        .glass-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            color: #e2e8f0;
+            transition: all 0.25s ease-in-out;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+            background: #243147;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            height: 100vh;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* FORM BOX */
+        .login-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        /* INPUTS */
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            background-color: #f8fafc;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            background-color: #ffffff;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        /* LOGIN TRIGGER */
+        .btn-login {
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-login:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-login:active {
+            transform: scale(0.99);
+        }
+
+        /* THIRD PARTY INTERACTIVE BUTTONS */
+        .social-btn {
+            border-radius: 10px;
+            padding: 11px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            transition: all 0.15s ease;
+        }
+
+        .social-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.15;
+            color: #ffffff;
+        }
+
+        .hero-text {
+            color: #94a3b8;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .logo-container {
+            display: inline-block;
+            background: #94c1ee;
+            padding: 12px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+        }
+
+        .logo-img {
+            max-width: 56px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* RESPONSIVE LAYOUT MEDIA QUERIES */
+        @media(max-width: 992px){
+            .left-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+
+        <!-- LEFT PANEL DISPLAY -->
+        <div class="col-lg-7 left-panel d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center gap-2 text-info">
+                    <i class="bi bi-cpu-fill fs-5"></i>
+                    <span class="fw-bold text-uppercase small" style="letter-spacing: 1px; font-size: 12px;">System Node</span>
+                </div>
+
+                <h1 class="hero-title mt-5">
+                    Smart Deliveries.<br>
+                    Real-Time Control.
+                </h1>
+
+                <p class="hero-text mt-3" style="max-width: 480px;">
+                    Monitor active delivery riders, trace target coordinates, and coordinate platform telemetry fields securely.
+                </p>
+            </div>
+
+            <!-- FLOATING INTEGRATION CARDS -->
+            <div class="row g-3 mt-4">
+                <div class="col-6">
+                    <div class="glass-card">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-radar text-info fs-5"></i>
+                            <strong class="small text-white">Real-Time Tracking</strong>
+                        </div>
+                        <span class="text-muted d-block small" style="font-size: 12px;">Live coordination updates.</span>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="glass-card">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-bezier2 text-success fs-5"></i>
+                            <strong class="small text-white">Smart Routing</strong>
+                        </div>
+                        <span class="text-muted d-block small" style="font-size: 12px;">Optimized path calculation.</span>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="glass-card">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-shield-check text-primary fs-5"></i>
+                            <strong class="small text-white">Secure Delivery</strong>
+                        </div>
+                        <span class="text-muted d-block small" style="font-size: 12px;">Cryptographic authentication tokens.</span>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="glass-card">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-bar-chart-line text-warning fs-5"></i>
+                            <strong class="small text-white">Analytics Reports</strong>
+                        </div>
+                        <span class="text-muted d-block small" style="font-size: 12px;">Comprehensive metric tracking.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT FORM PANEL -->
+        <div class="col-lg-5 right-panel">
+            <div class="login-box">
+                
+                <div class="logo-container">
+                    <img src="{% static 'images/logo.png' %}" alt="Platform Emblem" class="logo-img">
+                </div>
+
+                <h3 class="fw-bold text-dark mb-1" style="letter-spacing: -0.5px;">Welcome Back</h3>
+                <p class="text-muted small mb-4">Sign in to initialize portal connection.</p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter registration identifier" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••••••" required>
+                    </div>
+
+                    {% if error %}
+                    <div class="alert alert-danger py-2 px-3 border-0 small text-center rounded-3 mb-3" style="font-weight: 500;">
+                        <i class="bi bi-exclamation-octagon-fill me-1"></i> {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-login text-white w-100">
+                        Log In
+                    </button>
+                </form>
+
+                <!-- ALTERNATIVE AUTH SEPARATOR -->
+
+                <div class="text-center mt-4 pt-2">
+                    <span class="text-muted small">Don't have an account?</span>
+                    <a href="/register/" class="small fw-bold text-decoration-none ms-1" style="color: var(--accent-blue);">Register</a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Bootstrap Bundle JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
