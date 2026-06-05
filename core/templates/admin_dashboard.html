@@ -102,20 +102,15 @@ body {
     width: 100%;
     max-width: 100%;
     aspect-ratio: 4/3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .stream-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-}
-.stream-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
 }
 .stream-badge {
     position: absolute;
@@ -403,8 +398,7 @@ body {
                         <div class="col-lg-6">
                             <div class="stream-container border border-secondary border-opacity-50 shadow-sm rounded-4 bg-black">
                                 <span class="badge bg-danger stream-badge px-3 py-1.5 shadow" id="aiStreamLabel">LIVE NEURAL INTERCEPT</span>
-                                <video id="aiMonitorVideo" class="stream-video" autoplay playsinline loop muted crossorigin="anonymous" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
-                                <canvas id="aiMonitorCanvas" class="stream-canvas"></canvas>
+                                <img id="aiMonitorVideo" class="stream-video" alt="Waiting for Remote Courier Stream...">
                             </div>
                         </div>
                         <div class="col-lg-6">
@@ -423,8 +417,8 @@ body {
                                 <div class="row g-3 mb-4">
                                     <div class="col-sm-6">
                                         <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-1">Model Node State</label>
-                                        <span class="badge bg-warning text-dark px-3 py-2 w-100 text-center fw-semibold rounded-3" id="modelStatus">
-                                            <i class="bi bi-hourglass-split me-1"></i>Initializing COCO-SSD...
+                                        <span class="badge bg-success px-3 py-2 w-100 text-center fw-semibold rounded-3" id="modelStatus">
+                                            <i class="bi bi-broadcast me-1"></i>Remote Stream Active
                                         </span>
                                     </div>
                                     <div class="col-sm-6">
@@ -700,9 +694,9 @@ body {
                 <div id="mapInfo" class="mb-4 small lh-lg"></div>
                 <hr class="text-muted opacity-25 my-0 mb-4">
                 <h6 class="fw-bold mb-3"><i class="bi bi-camera-video text-danger me-1"></i> Live Stream Link</h6>
-                <div class="stream-container border shadow-sm rounded-3 w-100">
+                <div class="stream-container border shadow-sm rounded-3 w-100 bg-black">
                     <span class="badge bg-danger stream-badge pulse-badge">REC</span>
-                    <video id="modalPOVVideo" class="stream-video" autoplay playsinline loop muted crossorigin="anonymous" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
+                    <img id="modalPOVVideo" class="stream-video" alt="Waiting for Remote Courier Stream...">
                 </div>
             </div>
         </div>
@@ -713,8 +707,6 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> 
@@ -906,99 +898,90 @@ setInterval(() => {
     }
 }, 5000);
 
-document.addEventListener('DOMContentLoaded', () => { fetchReportData('daily'); });
+document.addEventListener('DOMContentLoaded', () => { fetchReportData('daily'); initializeAIObjectDetection(); });
 
-/* AI VISION PIPELINE - ENHANCED PARCEL & ANOMALY DETECTION */
-let objectDetectorModel;
-let aiWarningSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+/* ADMIN AI VISION & WEBSOCKET PIPELINE - LISTENS TO RIDER STREAM */
+let adminStreamSocket = null;
+let currentTargetRider = null;
 
 function launchLiveAIMonitor(riderName) {
     const aiPanel = document.getElementById('integrated-ai-panel');
     if(aiPanel) {
         aiPanel.classList.remove('d-none');
         document.getElementById('aiActiveTarget').innerHTML = `<i class="bi bi-person-badge me-2"></i>${riderName}`;
+        currentTargetRider = riderName;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
+
 function closeGlobalAIMonitor() {
     document.getElementById('integrated-ai-panel').classList.add('d-none');
     document.getElementById('aiAnomalyWarning').classList.add('d-none');
+    currentTargetRider = null;
 }
 
-async function initializeAIObjectDetection() {
-    try {
-        objectDetectorModel = await cocoSsd.load();
-        document.getElementById('modelStatus').innerHTML = "<i class='bi bi-cpu-fill me-1'></i>COCO-SSD Neural Active";
-        document.getElementById('modelStatus').className = "badge bg-success px-3 py-2 w-100 text-center fw-semibold rounded-3";
-        detectFrame();
-    } catch (e) {
-        console.error(e);
-        document.getElementById('modelStatus').innerHTML = "Engine Offline";
-        document.getElementById('modelStatus').className = "badge bg-danger px-3 py-2 w-100 text-center rounded-3";
-    }
+function initializeAIObjectDetection() {
+    connectAdminStream();
 }
 
-async function detectFrame() {
-    const video = document.getElementById('aiMonitorVideo');
-    const canvas = document.getElementById('aiMonitorCanvas');
-    const label = document.getElementById('detectedObjects');
-    const anomalyWarning = document.getElementById('aiAnomalyWarning');
-    const anomalyMsg = document.getElementById('aiAnomalyMessage');
-
-    if (!video || !canvas || !objectDetectorModel) return requestAnimationFrame(detectFrame);
-    if (video.readyState === 4) {
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+function connectAdminStream() {
+    if(adminStreamSocket) return;
+    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsUrl = wsScheme + window.location.host + "/ws/live-monitoring/";
+    
+    adminStreamSocket = new WebSocket(wsUrl);
+    
+    adminStreamSocket.onmessage = function(e) {
+        const payload = JSON.parse(e.data);
         
-        const preds = await objectDetectorModel.detect(video);
-        let items = [];
-        let anomalyDetected = false;
-        let parcelDetected = false;
+        if (payload.stream && (!currentTargetRider || payload.rider === currentTargetRider)) {
+            // Update Dashboard Monitor feed
+            const dashFeed = document.getElementById('aiMonitorVideo');
+            if (dashFeed) dashFeed.src = payload.stream;
+            
+            // Update Map Modal feed
+            const modalFeed = document.getElementById('modalPOVVideo');
+            if (modalFeed) modalFeed.src = payload.stream;
+            
+            // Process Rider AI Bounding Box Data
+            if (payload.predictions) {
+                const label = document.getElementById('detectedObjects');
+                const anomalyWarning = document.getElementById('aiAnomalyWarning');
+                const anomalyMsg = document.getElementById('aiAnomalyMessage');
+                
+                let items = [];
+                let anomalyDetected = false;
 
-        preds.forEach(p => {
-            const detectedClass = p.class.toLowerCase();
-            items.push(`${p.class} (${Math.round(p.score*100)}%)`);
-            
-            // Logic for classifying objects
-            let boxColor = '#0dcaf0'; // Default cyan
-            
-            if (['suitcase', 'backpack', 'handbag', 'box'].includes(detectedClass)) {
-                boxColor = '#198754'; // Green for parcels
-                parcelDetected = true;
-            } else if (['person', 'cell phone'].includes(detectedClass)) {
-                boxColor = '#dc3545'; // Red for anomalies
-                anomalyDetected = true;
-                anomalyMsg.innerHTML = `Unauthorized <strong>${p.class}</strong> detected in operational field of view!`;
+                payload.predictions.forEach(p => {
+                    const detectedClass = p.class.toLowerCase();
+                    items.push(`${p.class} (${Math.round(p.score*100)}%)`);
+                    
+                    if (['person', 'cell phone'].includes(detectedClass)) {
+                        anomalyDetected = true;
+                        if(anomalyMsg) anomalyMsg.innerHTML = `Unauthorized <strong>${p.class}</strong> detected in operational field of view!`;
+                    }
+                });
+
+                if(label) {
+                    label.innerHTML = items.length ? items.map(i => `<span class='badge bg-black border border-secondary text-warning me-1 mb-1'>${i}</span>`).join('') : 'Scanning payload signatures...';
+                }
+
+                if (anomalyWarning) {
+                    if (anomalyDetected) {
+                        anomalyWarning.classList.remove('d-none');
+                    } else {
+                        anomalyWarning.classList.add('d-none');
+                    }
+                }
             }
-
-            ctx.strokeStyle = boxColor; 
-            ctx.lineWidth = 3; 
-            ctx.strokeRect(...p.bbox);
-            ctx.fillStyle = boxColor; 
-            ctx.font = '16px sans-serif'; 
-            ctx.fillText(p.class, p.bbox[0], p.bbox[1] > 20 ? p.bbox[1]-5:10);
-        });
-
-        label.innerHTML = items.length ? items.map(i => `<span class='badge bg-black border border-secondary text-warning me-1 mb-1'>${i}</span>`).join('') : 'Scanning payload signatures...';
-
-        // Trigger or hide anomaly warning
-        if (anomalyDetected) {
-            anomalyWarning.classList.remove('d-none');
-        } else {
-            anomalyWarning.classList.add('d-none');
         }
-    }
-    requestAnimationFrame(detectFrame);
-}
+    };
 
-document.addEventListener("DOMContentLoaded", () => {
-    initializeAIObjectDetection();
-    navigator.mediaDevices.getUserMedia({video: true, audio: false}).then(s => {
-        let v = document.getElementById('aiMonitorVideo');
-        if(v) v.srcObject = s;
-    }).catch(e => console.log("Simulating stream..."));
-});
+    adminStreamSocket.onclose = function() {
+        adminStreamSocket = null;
+        setTimeout(connectAdminStream, 5000);
+    };
+}
 
 /* LEAFLET MAPPING ENGINE - WITH DESTINATION MARKERS */
 let adminMap, routeControl, destinationMarkerLayer;
@@ -1008,7 +991,8 @@ function openMapModal(customer, rider, address, lat, lng, expectedLat, expectedL
     const mapInfo = document.getElementById('mapInfo');
     const mapWarning = document.getElementById('mapWarning');
     document.getElementById('mapModalLabel').innerHTML = `<i class="bi bi-geo-alt-fill text-info me-2"></i>Live Vectors: ${customer}`;
-    
+    currentTargetRider = rider; // Auto-attach video feed to this rider for the modal
+
     mapInfo.innerHTML = `
       <div class="row w-100 g-2">
           <div class="col-sm-6"><strong>Target Client:</strong> <span class="text-primary">${customer}</span></div>
@@ -1035,7 +1019,6 @@ function openMapModal(customer, rider, address, lat, lng, expectedLat, expectedL
         warningSoundMap.play().catch(()=>{});
     }
 
-    // Add visual marker for the expected destination address
     const destIcon = L.divIcon({
         className: 'custom-div-icon',
         html: "<div style='background-color:#dc3545; width:15px; height:15px; border-radius:50%; border:3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);'></div>",
@@ -1051,21 +1034,19 @@ function openMapModal(customer, rider, address, lat, lng, expectedLat, expectedL
         show: false, addWaypoints: false, fitSelectedRoute: true,
         router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
         lineOptions: { styles: [{ color: '#0dcaf0', opacity: 0.8, weight: 5 }] },
-        createMarker: function() { return null; } // Hide default markers to use custom one above
+        createMarker: function() { return null; } 
     }).addTo(adminMap);
-
-    navigator.mediaDevices.getUserMedia({video: true}).then(s => {
-        let m = document.getElementById('modalPOVVideo');
-        if(m) m.srcObject = s;
-    }).catch(e=>{});
 
     new bootstrap.Modal(document.getElementById('mapModal')).show();
     setTimeout(() => { if(adminMap) adminMap.invalidateSize(); }, 300);
 }
+
 document.getElementById('mapModal').addEventListener('hidden.bs.modal', function () {
-    let m = document.getElementById('modalPOVVideo');
-    if (m && m.srcObject) { m.srcObject.getTracks().forEach(t => t.stop()); m.srcObject = null; }
+    currentTargetRider = null;
+    const m = document.getElementById('modalPOVVideo');
+    if (m) m.src = "";
 });
+
 function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
     const R = 6371; const dLat = (lat2-lat1)*(Math.PI/180); const dLon = (lon2-lon1)*(Math.PI/180);
     const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
