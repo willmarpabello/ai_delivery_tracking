@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-&fg8kuf)#+h6lc81^08plnri#^un8j+31wxd4a%2!*#$3%y5$3
 DEBUG = True
 
 # Added standard local network origins to clear routing handshakes
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['*']
 
 # CRITICAL FIX: Explicitly trust local origins to eliminate the CSRF 403 error
 CSRF_TRUSTED_ORIGINS = [
