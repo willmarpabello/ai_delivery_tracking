@@ -75,13 +75,16 @@ def dashboard(request):
         return render(request, 'login.html')
 
     # ADMIN DASHBOARD
+    # ADMIN DASHBOARD
     if user.user_type == 'admin':
 
         customers = CustomUser.objects.filter(user_type='customer')
         riders = CustomUser.objects.filter(user_type='rider')
 
-        total_deliveries = Delivery.objects.count()
-        recent_deliveries = Delivery.objects.order_by('-created_at')[:5]
+        # FIX: Fetch the actual list of deliveries to loop over
+        all_deliveries = Delivery.objects.all().order_by('-created_at')
+        total_deliveries = all_deliveries.count()
+        recent_deliveries = all_deliveries[:5]
 
         # STATUS BREAKDOWN
         pending_count = Delivery.objects.filter(status='Pending').count()
@@ -90,7 +93,7 @@ def dashboard(request):
         failed_count = Delivery.objects.filter(status='Failed').count()
         waiting_confirm = Delivery.objects.filter(status="Waiting Confirmation").count()
 
-        # ✅ LIVE TRACKING FIX (IMPORTANT PART)
+        # ✅ LIVE TRACKING FIX
         latest_logs = DeliveryLog.objects.filter(
             delivery__status="In Transit"
         ).order_by('-timestamp')
@@ -102,8 +105,11 @@ def dashboard(request):
             'recent_deliveries': recent_deliveries,
             'latest_logs': latest_logs,
 
+            # FIX: Pass the QuerySet here for the HTML loops
+            'deliveries': all_deliveries, 
+            
             # STATS
-            'deliveries': total_deliveries,
+            'delivery_count': total_deliveries, # Pass the integer count here
             'pending_count': pending_count,
             'delivered_count': delivered_count,
             'transit_count': transit_count,
@@ -112,7 +118,7 @@ def dashboard(request):
         }
 
         return render(request, 'admin_dashboard.html', context)
-   
+    
     elif user.user_type == 'rider':
         rider_deliveries = Delivery.objects.filter(rider=user)
         delivery_count = rider_deliveries.count()
