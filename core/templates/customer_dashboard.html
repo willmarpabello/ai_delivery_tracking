@@ -567,7 +567,7 @@
         {% endfor %}
     </div>
 
-    <!-- ACCOUNT TRANSACTION AUDITS -->
+    <!-- UPDATED: ACCOUNT TRANSACTION AUDITS (Activity Audit) -->
     <div id="activity" class="section">
         <div class="card-box">
             <h4 class="fw-bold text-dark mb-4"><i class="bi bi-clock-history me-2 text-primary"></i>Parcel Activity History</h4>
@@ -625,17 +625,14 @@
         </div>
     </div>
 
-   <!-- PROFILE SETTINGS -->
+    <!-- UPDATED: PROFILE SETTINGS -->
     <div id="profile" class="section">
         <div class="row g-4">
             <!-- Profile Picture Card -->
             <div class="col-md-4">
                 <div class="card-box text-center h-100">
                     <h5 class="fw-bold text-dark mb-4">Profile Picture</h5>
-                    <!-- 
-                        Ensure your Django view handles the file upload. 
-                        Replace action="#" with your target URL, e.g., action="{% url 'update_profile_picture' %}" 
-                    -->
+                    <!-- Set action="#" to prevent NoReverseMatch errors -->
                     <form method="POST" enctype="multipart/form-data" action="#">
                         {% csrf_token %}
                         <div class="position-relative d-inline-block mb-3">
@@ -661,15 +658,12 @@
             <div class="col-md-8">
                 <div class="card-box h-100">
                     <h5 class="fw-bold text-dark mb-4">Account Information</h5>
-                    <!-- 
-                        Replace action="#" with your target URL, e.g., action="{% url 'update_profile_details' %}" 
-                    -->
+                    <!-- Set action="#" to prevent NoReverseMatch errors -->
                     <form method="POST" action="#">
                         {% csrf_token %}
                         <div class="row g-3 mb-3">
                             <div class="col-sm-6">
                                 <label class="form-label text-muted small fw-medium">Username</label>
-                                <!-- Username is typically disabled from changing directly to prevent DB conflicts -->
                                 <input type="text" class="form-control bg-light" value="{{ request.user.username }}" disabled>
                             </div>
                             <div class="col-sm-6">
@@ -701,6 +695,7 @@
             </div>
         </div>
     </div>
+</div>
 
 <!-- LEAFLET ROUTING PLUGINS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
