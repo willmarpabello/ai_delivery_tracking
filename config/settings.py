@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'core',
     'daphne',
     'channels',
-    'delivery_app',
 ]
 
 MIDDLEWARE = [
