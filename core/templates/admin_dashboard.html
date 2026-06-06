@@ -102,20 +102,15 @@ body {
     width: 100%;
     max-width: 100%;
     aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .stream-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-}
-.stream-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
 }
 .stream-badge {
     position: absolute;
@@ -212,7 +207,7 @@ body {
                 <div class="card-box d-flex align-items-center justify-content-between h-100">
                     <div>
                         <span class="text-muted text-uppercase small fw-bold font-monospace mb-1 d-block">Deliveries</span>
-                        <h3 class="fw-bold m-0 text-dark">{{ deliveries }}</h3>
+                        <h3 class="fw-bold m-0 text-dark">{{ deliveries.count }}</h3>
                     </div>
                     <div class="p-3 bg-warning-subtle text-warning rounded-circle"><i class="bi bi-box-seam fs-4"></i></div>
                 </div>
@@ -232,8 +227,8 @@ body {
             <div class="col-md-7">
                 <div class="card-box h-100">
                     <h6 class="fw-bold text-dark mb-4"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Global Dispatch Status</h6>
-                    {% if deliveries > 0 %}
-                        {% with total=deliveries %}
+                    {% if deliveries.count > 0 %}
+                        {% with total=deliveries.count %}
                             {% widthratio delivered_count total 100 as delivered_pct %}
                             {% widthratio transit_count total 100 as transit_pct %}
                             {% widthratio pending_count total 100 as pending_pct %}
@@ -358,7 +353,7 @@ body {
                         </tr>
                     </thead>
                     <tbody id="deliveryTable">
-                        {% for d in recent_deliveries %}
+                        {% for d in deliveries %}
                         <tr data-status="{{ d.status }}" style="cursor: pointer;"
                             onclick="showModal('{{ d.id }}', '{{ d.customer.username|escapejs }}', '{{ d.rider.username|default:"Not Assigned"|escapejs }}', '{{ d.status|escapejs }}', '{{ d.address|default:"N/A"|escapejs }}', '{{ d.created_at|date:"M d, Y H:i"|escapejs }}')">
                             <td class="ps-4 fw-bold">#{{ d.id }}</td>
@@ -415,10 +410,10 @@ body {
                 <div class="card-body p-4">
                     <div class="row align-items-center g-4">
                         <div class="col-lg-6">
-                            <div class="stream-container border border-secondary border-opacity-50 shadow-sm rounded-4 bg-black">
+                            <div class="stream-container border border-secondary border-opacity-50 shadow-sm rounded-4 bg-black position-relative">
                                 <span class="badge bg-danger stream-badge px-3 py-1.5 shadow" id="aiStreamLabel">LIVE NEURAL INTERCEPT</span>
-                                <video id="aiMonitorVideo" class="stream-video" autoplay playsinline loop muted crossorigin="anonymous" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
-                                <canvas id="aiMonitorCanvas" class="stream-canvas"></canvas>
+                                
+                                <img id="aiMonitorVideo" class="stream-video" src="" alt="Awaiting secure connection tunnel from rider edge device...">
                             </div>
                         </div>
                         <div class="col-lg-6">
@@ -438,12 +433,12 @@ body {
                                     <div class="col-sm-6">
                                         <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-1">Model Node State</label>
                                         <span class="badge bg-warning text-dark px-3 py-2 w-100 text-center fw-semibold rounded-3" id="modelStatus">
-                                            <i class="bi bi-hourglass-split me-1"></i>Initializing COCO-SSD...
+                                            <i class="bi bi-hourglass-split me-1"></i>Awaiting Stream...
                                         </span>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-1">Inference Engine</label>
-                                        <span class="badge bg-primary px-3 py-2 w-100 text-center rounded-3"><i class="bi bi-layers me-1"></i>TensorFlow.js Edge</span>
+                                        <span class="badge bg-primary px-3 py-2 w-100 text-center rounded-3"><i class="bi bi-layers me-1"></i>Rider Edge Link</span>
                                     </div>
                                 </div>
                                 <div>
@@ -619,15 +614,15 @@ body {
                 <div class="card-box h-100">
                     <h6 class="fw-bold mb-4">System Efficiency Metrics</h6>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Total Flow</span><span class="fw-bold">{{ deliveries }}</span>
+                        <span class="text-muted">Total Flow</span><span class="fw-bold">{{ deliveries.count }}</span>
                     </div>
                     <hr class="text-muted opacity-25">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-success">Completion Rate</span><span class="fw-bold">{% widthratio delivered_count deliveries 100|default:0 %}%</span>
+                        <span class="text-success">Completion Rate</span><span class="fw-bold">{% widthratio delivered_count deliveries.count 100|default:0 %}%</span>
                     </div>
                     <hr class="text-muted opacity-25">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-warning">Stagnation Rate</span><span class="fw-bold">{% widthratio pending_count deliveries 100|default:0 %}%</span>
+                        <span class="text-warning">Stagnation Rate</span><span class="fw-bold">{% widthratio pending_count deliveries.count 100|default:0 %}%</span>
                     </div>
                 </div>
             </div>
@@ -687,7 +682,6 @@ body {
     </div>
 </div>
 
-<!-- Assign Rider Connection Modal -->
 <div class="modal fade" id="assignRiderModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4 p-4">
@@ -743,9 +737,10 @@ body {
                 <div id="mapInfo" class="mb-4 small lh-lg"></div>
                 <hr class="text-muted opacity-25 my-0 mb-4">
                 <h6 class="fw-bold mb-3"><i class="bi bi-camera-video text-danger me-1"></i> Live Stream Link</h6>
-                <div class="stream-container border shadow-sm rounded-3 w-100">
+                <div class="stream-container border shadow-sm rounded-3 w-100 bg-black">
                     <span class="badge bg-danger stream-badge pulse-badge">REC</span>
-                    <video id="modalPOVVideo" class="stream-video" autoplay playsinline loop muted crossorigin="anonymous" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
+                    
+                    <img id="modalPOVVideo" class="stream-video" src="" alt="Connecting...">
                 </div>
             </div>
         </div>
@@ -756,8 +751,6 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> 
@@ -794,11 +787,7 @@ function showModal(id, customer, rider, status, location, date) {
 
 function openAssignRiderModal(deliveryId) {
     document.getElementById('assignDeliveryId').value = deliveryId;
-    
-    // Updates action URL correctly assuming standard Django routing format for assigning.
-    // Adjust "/assign-rider/" routing depending on your exact URL path setups in urls.py
     document.getElementById('assignRiderForm').action = `/assign-rider/${deliveryId}/`;
-    
     new bootstrap.Modal(document.getElementById('assignRiderModal')).show();
 }
 
@@ -961,8 +950,10 @@ setInterval(() => {
 
 document.addEventListener('DOMContentLoaded', () => { fetchReportData('daily'); });
 
-/* AI VISION PIPELINE - ENHANCED PARCEL & ANOMALY DETECTION */
-let objectDetectorModel;
+/* =========================================================================
+   AI VISION PIPELINE - WEBSOCKET CONNECTED TO RIDER'S EDGE DEVICE
+   ========================================================================= */
+let adminStreamSocket = null;
 let aiWarningSound = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
 
 function launchLiveAIMonitor(riderName) {
@@ -971,87 +962,97 @@ function launchLiveAIMonitor(riderName) {
         aiPanel.classList.remove('d-none');
         document.getElementById('aiActiveTarget').innerHTML = `<i class="bi bi-person-badge me-2"></i>${riderName}`;
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Connect to the WebSockets Stream Receiver
+        connectAdminMonitoringStream(riderName, 'aiMonitorVideo');
     }
 }
+
 function closeGlobalAIMonitor() {
     document.getElementById('integrated-ai-panel').classList.add('d-none');
     document.getElementById('aiAnomalyWarning').classList.add('d-none');
-}
-
-async function initializeAIObjectDetection() {
-    try {
-        objectDetectorModel = await cocoSsd.load();
-        document.getElementById('modelStatus').innerHTML = "<i class='bi bi-cpu-fill me-1'></i>COCO-SSD Neural Active";
-        document.getElementById('modelStatus').className = "badge bg-success px-3 py-2 w-100 text-center fw-semibold rounded-3";
-        detectFrame();
-    } catch (e) {
-        console.error(e);
-        document.getElementById('modelStatus').innerHTML = "Engine Offline";
-        document.getElementById('modelStatus').className = "badge bg-danger px-3 py-2 w-100 text-center rounded-3";
+    
+    // Shut down the connection when panel is closed to save bandwidth
+    if (adminStreamSocket) {
+        adminStreamSocket.close();
+        adminStreamSocket = null;
     }
 }
 
-async function detectFrame() {
-    const video = document.getElementById('aiMonitorVideo');
-    const canvas = document.getElementById('aiMonitorCanvas');
-    const label = document.getElementById('detectedObjects');
-    const anomalyWarning = document.getElementById('aiAnomalyWarning');
-    const anomalyMsg = document.getElementById('aiAnomalyMessage');
+function connectAdminMonitoringStream(riderName, targetElementId) {
+    // If a connection already exists, close it first
+    if (adminStreamSocket) adminStreamSocket.close();
 
-    if (!video || !canvas || !objectDetectorModel) return requestAnimationFrame(detectFrame);
-    if (video.readyState === 4) {
-        const ctx = canvas.getContext('2d');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsUrl = wsScheme + window.location.host + "/ws/live-monitoring/";
+
+    adminStreamSocket = new WebSocket(wsUrl);
+    
+    const modelStatus = document.getElementById('modelStatus');
+    if(modelStatus && targetElementId === 'aiMonitorVideo') {
+        modelStatus.innerHTML = "<i class='bi bi-wifi me-1'></i>Awaiting Stream...";
+        modelStatus.className = "badge bg-warning px-3 py-2 w-100 text-center fw-semibold rounded-3 text-dark";
+    }
+
+    adminStreamSocket.onmessage = function(e) {
+        const payload = JSON.parse(e.data);
         
-        const preds = await objectDetectorModel.detect(video);
-        let items = [];
-        let anomalyDetected = false;
-        let parcelDetected = false;
+        // If there's a base64 encoded video frame in the payload
+        if (payload.stream) {
+            const monitorImg = document.getElementById(targetElementId);
+            if (monitorImg) monitorImg.src = payload.stream;
 
-        preds.forEach(p => {
-            const detectedClass = p.class.toLowerCase();
-            items.push(`${p.class} (${Math.round(p.score*100)}%)`);
+            if(modelStatus && targetElementId === 'aiMonitorVideo') {
+                modelStatus.innerHTML = "<i class='bi bi-broadcast me-1'></i>Stream Active";
+                modelStatus.className = "badge bg-success px-3 py-2 w-100 text-center fw-semibold rounded-3 text-white";
+            }
+        }
+
+        // If the Rider's edge device sent COCO-SSD bounding box prediction logic
+        if (payload.predictions && targetElementId === 'aiMonitorVideo') {
+            const label = document.getElementById('detectedObjects');
+            const anomalyWarning = document.getElementById('aiAnomalyWarning');
+            const anomalyMsg = document.getElementById('aiAnomalyMessage');
+
+            let items = [];
+            let anomalyDetected = false;
             
-            // Logic for classifying objects
-            let boxColor = '#0dcaf0'; // Default cyan
-            
-            if (['suitcase', 'backpack', 'handbag', 'box'].includes(detectedClass)) {
-                boxColor = '#198754'; // Green for parcels
-                parcelDetected = true;
-            } else if (['person', 'cell phone'].includes(detectedClass)) {
-                boxColor = '#dc3545'; // Red for anomalies
-                anomalyDetected = true;
-                anomalyMsg.innerHTML = `Unauthorized <strong>${p.class}</strong> detected in operational field of view!`;
+            // Allowlist safe classes, everything else triggers anomaly warning
+            const safeHumanClasses = ['person', 'bicycle', 'car', 'motorcycle', 'bus', 'truck', 'traffic light', 'stop sign'];
+            const parcelClasses = ['suitcase', 'backpack', 'handbag', 'book', 'box', 'package', 'cell phone', 'laptop'];
+
+            payload.predictions.forEach(p => {
+                items.push(`${p.class} (${Math.round(p.score*100)}%)`);
+                
+                // Detection logic trigger
+                if (!safeHumanClasses.includes(p.class.toLowerCase()) && !parcelClasses.includes(p.class.toLowerCase())) {
+                    anomalyDetected = true;
+                    if (anomalyMsg) anomalyMsg.innerHTML = `Unauthorized <strong>${p.class}</strong> detected in operational field of view!`;
+                }
+            });
+
+            if(label) {
+                label.innerHTML = items.length ? items.map(i => `<span class='badge bg-black border border-secondary text-warning me-1 mb-1'>${i}</span>`).join('') : 'Scanning payload signatures...';
             }
 
-            ctx.strokeStyle = boxColor; 
-            ctx.lineWidth = 3; 
-            ctx.strokeRect(...p.bbox);
-            ctx.fillStyle = boxColor; 
-            ctx.font = '16px sans-serif'; 
-            ctx.fillText(p.class, p.bbox[0], p.bbox[1] > 20 ? p.bbox[1]-5:10);
-        });
-
-        label.innerHTML = items.length ? items.map(i => `<span class='badge bg-black border border-secondary text-warning me-1 mb-1'>${i}</span>`).join('') : 'Scanning payload signatures...';
-
-        // Trigger or hide anomaly warning
-        if (anomalyDetected) {
-            anomalyWarning.classList.remove('d-none');
-        } else {
-            anomalyWarning.classList.add('d-none');
+            if (anomalyWarning) {
+                if (anomalyDetected) {
+                    anomalyWarning.classList.remove('d-none');
+                } else {
+                    anomalyWarning.classList.add('d-none');
+                }
+            }
         }
-    }
-    requestAnimationFrame(detectFrame);
+    };
+
+    adminStreamSocket.onclose = function() {
+        if(modelStatus && targetElementId === 'aiMonitorVideo') {
+            modelStatus.innerHTML = "<i class='bi bi-eye-slash me-1'></i>Connection Lost";
+            modelStatus.className = "badge bg-danger px-3 py-2 w-100 text-center fw-semibold rounded-3 text-white";
+        }
+    };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    initializeAIObjectDetection();
-    navigator.mediaDevices.getUserMedia({video: true, audio: false}).then(s => {
-        let v = document.getElementById('aiMonitorVideo');
-        if(v) v.srcObject = s;
-    }).catch(e => console.log("Simulating stream..."));
-});
 
 /* LEAFLET MAPPING ENGINE - WITH DESTINATION MARKERS */
 let adminMap, routeControl, destinationMarkerLayer;
@@ -1107,18 +1108,24 @@ function openMapModal(customer, rider, address, lat, lng, expectedLat, expectedL
         createMarker: function() { return null; } // Hide default markers to use custom one above
     }).addTo(adminMap);
 
-    navigator.mediaDevices.getUserMedia({video: true}).then(s => {
-        let m = document.getElementById('modalPOVVideo');
-        if(m) m.srcObject = s;
-    }).catch(e=>{});
+    // Open the Live Tracking link
+    connectAdminMonitoringStream(rider, 'modalPOVVideo');
 
     new bootstrap.Modal(document.getElementById('mapModal')).show();
     setTimeout(() => { if(adminMap) adminMap.invalidateSize(); }, 300);
 }
+
 document.getElementById('mapModal').addEventListener('hidden.bs.modal', function () {
     let m = document.getElementById('modalPOVVideo');
-    if (m && m.srcObject) { m.srcObject.getTracks().forEach(t => t.stop()); m.srcObject = null; }
+    if (m) m.src = ""; // Clear the feed
+    
+    // Shut down map stream connection when closed
+    if (adminStreamSocket) {
+        adminStreamSocket.close();
+        adminStreamSocket = null;
+    }
 });
+
 function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
     const R = 6371; const dLat = (lat2-lat1)*(Math.PI/180); const dLon = (lon2-lon1)*(Math.PI/180);
     const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
@@ -1128,7 +1135,7 @@ function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
 /* CHART.JS ANALYTICS */
 document.addEventListener("DOMContentLoaded", function() {
     const ctx = document.getElementById('deliveryPerformanceChart');
-    if (ctx && {{ deliveries|default:0 }} > 0) {
+    if (ctx && {{ deliveries.count|default:0 }} > 0) {
         new Chart(ctx, {
             type: 'doughnut',
             data: {
