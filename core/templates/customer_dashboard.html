@@ -625,42 +625,82 @@
         </div>
     </div>
 
-    <!-- PROFILE MANAGEMENT ENGINE -->
+   <!-- PROFILE SETTINGS -->
     <div id="profile" class="section">
-        <div class="row g-3">
+        <div class="row g-4">
+            <!-- Profile Picture Card -->
             <div class="col-md-4">
-                <div class="card-box text-center">
-                    {% if request.user.profile_picture %}
-                        <img src="{{ request.user.profile_picture.url }}" class="rounded-circle img-thumbnail mb-3 shadow-sm" style="width: 120px; height: 120px; object-fit: cover;">
-                    {% else %}
-                        <i class="bi bi-person-circle text-secondary d-block mb-3" style="font-size: 80px;"></i>
-                    {% endif %}
-                    <h5 class="fw-bold text-dark mb-1">{{ request.user.username }}</h5>
-                    <span class="text-muted small d-block mb-3">{{ request.user.email|default:"no-email-assigned@system.network" }}</span>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="alert('Profile asset editing engine is restricted configuration level.')">Update Profile Photo</button>
+                <div class="card-box text-center h-100">
+                    <h5 class="fw-bold text-dark mb-4">Profile Picture</h5>
+                    <!-- 
+                        Ensure your Django view handles the file upload. 
+                        Replace action="#" with your target URL, e.g., action="{% url 'update_profile_picture' %}" 
+                    -->
+                    <form method="POST" enctype="multipart/form-data" action="#">
+                        {% csrf_token %}
+                        <div class="position-relative d-inline-block mb-3">
+                            {% if request.user.profile_picture %}
+                                <img src="{{ request.user.profile_picture.url }}" class="rounded-circle img-thumbnail shadow-sm" style="width: 130px; height: 130px; object-fit: cover;">
+                            {% else %}
+                                <i class="bi bi-person-circle text-secondary" style="font-size: 100px;"></i>
+                            {% endif %}
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">{{ request.user.username }}</h5>
+                        <span class="text-muted small d-block mb-4">{{ request.user.email|default:"No email provided" }}</span>
+                        
+                        <div class="mb-3 text-start">
+                            <label class="form-label text-muted small fw-medium">Upload New Photo</label>
+                            <input class="form-control form-control-sm" type="file" name="profile_picture" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-4 w-100">Update Picture</button>
+                    </form>
                 </div>
             </div>
 
+            <!-- Account Details Form -->
             <div class="col-md-8">
-                <div class="card-box">
-                    <h5 class="fw-bold text-dark mb-4">Account Portfolio Configuration</h5>
-                    <form onsubmit="event.preventDefault(); alert('Profile settings stored across database registers successfully.');">
-                        <div class="row g-3">
+                <div class="card-box h-100">
+                    <h5 class="fw-bold text-dark mb-4">Account Information</h5>
+                    <!-- 
+                        Replace action="#" with your target URL, e.g., action="{% url 'update_profile_details' %}" 
+                    -->
+                    <form method="POST" action="#">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
                             <div class="col-sm-6">
-                                <label class="form-label text-muted small fw-medium">User Entity Label</label>
-                                <input type="text" class="form-control bg-light" value="{{ request.user.username }}" readonly>
+                                <label class="form-label text-muted small fw-medium">Username</label>
+                                <!-- Username is typically disabled from changing directly to prevent DB conflicts -->
+                                <input type="text" class="form-control bg-light" value="{{ request.user.username }}" disabled>
                             </div>
                             <div class="col-sm-6">
-                                <label class="form-label text-muted small fw-medium">E-Mail Endpoint</label>
-                                <input type="email" class="form-control bg-light" value="{{ request.user.email|default:'None Assigned' }}" readonly>
+                                <label class="form-label text-muted small fw-medium">Email Address</label>
+                                <input type="email" name="email" class="form-control" value="{{ request.user.email|default:'' }}" placeholder="Enter your email address">
                             </div>
+                        </div>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label class="form-label text-muted small fw-medium">First Name</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ request.user.first_name|default:'' }}" placeholder="Enter first name">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label text-muted small fw-medium">Last Name</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ request.user.last_name|default:'' }}" placeholder="Enter last name">
+                            </div>
+                        </div>
+
+                        <hr class="text-muted my-4">
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                <i class="bi bi-floppy-fill me-2"></i> Save Changes
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 <!-- LEAFLET ROUTING PLUGINS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
