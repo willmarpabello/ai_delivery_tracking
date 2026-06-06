@@ -273,12 +273,12 @@ body {
                 <h4 class="fw-bold mb-1 text-dark">Welcome Back, {{ request.user.first_name|default:request.user.username }}!</h4>
                 <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> Live assigned metrics operational hub</small>
             </div>
-            <div class="bg-white px-3 py-2 rounded-3 border shadow-sm text-end">
+            <div class="bg-white px-3 py-2 rounded-3 border shadow-sm text-end" id="active-route-status-container">
                 <small class="text-muted d-block font-monospace" style="font-size:11px;">CURRENT ASSIGNMENT STATUS</small>
                 {% if in_transit_count > 0 %}
-                    <span class="badge bg-info text-white"><i class="bi bi-truck me-1"></i>On active route</span>
+                    <span class="badge bg-info text-white" id="route-badge-active"><i class="bi bi-truck me-1"></i>On active route</span>
                 {% else %}
-                    <span class="badge bg-secondary text-white"><i class="bi bi-house me-1"></i>Awaiting Dispatch</span>
+                    <span class="badge bg-secondary text-white" id="route-badge-active"><i class="bi bi-house me-1"></i>Awaiting Dispatch</span>
                 {% endif %}
             </div>
         </div>
@@ -294,7 +294,7 @@ body {
                             </div>
                             <h6 class="text-muted text-start mb-1 fw-semibold">Assigned</h6>
                             <div class="d-flex align-items-baseline gap-2">
-                                <h2 class="fw-bold text-dark m-0">{{ delivery_count }}</h2>
+                                <h2 class="fw-bold text-dark m-0 sync-delivery-count">{{ delivery_count }}</h2>
                                 <small class="text-muted">total items</small>
                             </div>
                             <div class="text-start mt-3 pt-2 border-top text-primary font-monospace" style="font-size: 12px;">
@@ -311,7 +311,7 @@ body {
                             </div>
                             <h6 class="text-muted text-start mb-1 fw-semibold">In Transit</h6>
                             <div class="d-flex align-items-baseline gap-2">
-                                <h2 class="fw-bold text-dark m-0">{{ in_transit_count }}</h2>
+                                <h2 class="fw-bold text-dark m-0 sync-transit-count">{{ in_transit_count }}</h2>
                                 <small class="text-muted">on road</small>
                             </div>
                             <div class="text-start mt-3 pt-2 border-top text-info font-monospace" style="font-size: 12px;">
@@ -328,7 +328,7 @@ body {
                             </div>
                             <h6 class="text-muted text-start mb-1 fw-semibold">Delivered</h6>
                             <div class="d-flex align-items-baseline gap-2">
-                                <h2 class="fw-bold text-dark m-0">{{ delivered_count }}</h2>
+                                <h2 class="fw-bold text-dark m-0 sync-delivered-count">{{ delivered_count }}</h2>
                                 <small class="text-muted">completed</small>
                             </div>
                             <div class="text-start mt-3 pt-2 border-top text-success font-monospace" style="font-size: 12px;">
@@ -345,19 +345,19 @@ body {
                             <div class="p-3 mb-3 bg-light rounded-3">
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="text-dark fw-medium" style="font-size: 14px;"><i class="bi bi-award me-1 text-success"></i> Completion Rate</span>
-                                    <span class="fw-bold font-monospace text-success">{% widthratio delivered_count delivery_count 100 %}%</span>
+                                    <span class="fw-bold font-monospace text-success" id="completion-rate-text">{% widthratio delivered_count delivery_count 100 %}%</span>
                                 </div>
                                 <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: {% widthratio delivered_count delivery_count 100 %}%"></div>
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="completion-rate-bar" style="width: {% widthratio delivered_count delivery_count 100 %}%"></div>
                                 </div>
                             </div>
                             <div class="p-3 bg-light rounded-3">
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="text-dark fw-medium" style="font-size: 14px;"><i class="bi bi-compass me-1 text-info"></i> Dispatch Activity Payload</span>
-                                    <span class="fw-bold font-monospace text-info">{% widthratio in_transit_count delivery_count 100 %}%</span>
+                                    <span class="fw-bold font-monospace text-info" id="payload-rate-text">{% widthratio in_transit_count delivery_count 100 %}%</span>
                                 </div>
                                 <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" style="width: {% widthratio in_transit_count delivery_count 100 %}%"></div>
+                                    <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" id="payload-rate-bar" style="width: {% widthratio in_transit_count delivery_count 100 %}%"></div>
                                 </div>
                             </div>
                         </div>
@@ -369,19 +369,19 @@ body {
                             <div class="d-flex flex-column gap-2">
                                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
                                     <div class="text-muted"><i class="bi bi-geo-alt text-primary me-2"></i>Assigned Shipments</div>
-                                    <span class="badge bg-secondary font-monospace fw-bold fs-6">{{ delivery_count }}</span>
+                                    <span class="badge bg-secondary font-monospace fw-bold fs-6 sync-delivery-count">{{ delivery_count }}</span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
                                     <div class="text-muted"><i class="bi bi-play-circle text-info me-2"></i>Active Manifests</div>
-                                    <span class="badge bg-info text-white font-monospace fw-bold fs-6">{{ in_transit_count }}</span>
+                                    <span class="badge bg-info text-white font-monospace fw-bold fs-6 sync-transit-count">{{ in_transit_count }}</span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
                                     <div class="text-muted"><i class="bi bi-shield-check text-success me-2"></i>Success Dispatches</div>
-                                    <span class="badge bg-success text-white font-monospace fw-bold fs-6">{{ delivered_count }}</span>
+                                    <span class="badge bg-success text-white font-monospace fw-bold fs-6 sync-delivered-count">{{ delivered_count }}</span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
                                     <div class="text-muted"><i class="bi bi-hourglass-split text-warning me-2"></i>Awaiting Pickup</div>
-                                    <span class="badge bg-warning text-dark font-monospace fw-bold fs-6">{{ pending_count }}</span>
+                                    <span class="badge bg-warning text-dark font-monospace fw-bold fs-6" id="sync-pending-count">{{ pending_count }}</span>
                                 </div>
                             </div>
                         </div>
@@ -398,16 +398,17 @@ body {
                 <small class="text-muted">Manage client drop-offs, routes, and status confirmation triggers in real-time.</small>
             </div>
             <div class="d-flex gap-2">
-                <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1 px-2.5 py-2 rounded-3"><i class="bi bi-hourglass"></i> {{ pending_count }} Pending</span>
-                <span class="badge bg-info text-white d-inline-flex align-items-center gap-1 px-2.5 py-2 rounded-3"><i class="bi bi-truck"></i> {{ in_transit_count }} On Road</span>
+                <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1 px-2.5 py-2 rounded-3"><i class="bi bi-hourglass"></i> <span id="manifest-badge-pending">{{ pending_count }}</span> Pending</span>
+                <span class="badge bg-info text-white d-inline-flex align-items-center gap-1 px-2.5 py-2 rounded-3"><i class="bi bi-truck"></i> <span id="manifest-badge-transit">{{ in_transit_count }}</span> On Road</span>
             </div>
         </div>
 
+        <div id="delivery-cards-container">
         {% if deliveries %}
             <div class="row g-3">
             {% for d in deliveries %}
-                <div class="col-xl-6">
-                    <div class="card-box h-100 delivery-card {% if d.status == 'Delivered' %}status-delivered{% elif d.status == 'In Transit' %}status-transit{% else %}status-pending{% endif %}">
+                <div class="col-xl-6 delivery-item-wrapper" id="delivery-wrapper-{{ d.id }}">
+                    <div class="card-box h-100 delivery-card {% if d.status == 'Delivered' %}status-delivered{% elif d.status == 'In Transit' %}status-transit{% else %}status-pending{% endif %}" id="delivery-card-box-{{ d.id }}">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
                                 <span class="text-muted font-monospace d-block mb-1" style="font-size: 12px;">INVENTORY ID</span>
@@ -415,7 +416,7 @@ body {
                                     <i class="bi bi-box-seam-fill text-secondary"></i> Ship #{{ d.id }}
                                 </h5>
                             </div>
-                            <div>
+                            <div id="delivery-badge-{{ d.id }}">
                                 {% if d.status == "Delivered" %}
                                     <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-medium"><i class="bi bi-check2-circle me-1"></i>Delivered</span>
                                 {% elif d.status == "In Transit" %}
@@ -450,18 +451,20 @@ body {
                                 </a>
                             </div>
 
-                            <div class="d-flex gap-1">
-                                {% if d.status != "In Transit" and d.status != "Delivered" %}
+                            <div class="d-flex gap-1" id="delivery-actions-{{ d.id }}">
+                                {% if d.status == "Pending" %}
                                     <a href="{% url 'update_status' d.id 'In Transit' %}" class="btn btn-primary btn-sm action-bar-btn px-3 shadow-sm">
                                         <i class="bi bi-play-fill"></i> Start Job
                                     </a>
-                                {% endif %}
-                                {% if d.status != "Delivered" %}
-                                    <a href="customer_dashboard.html" class="btn btn-warning btn-sm action-bar-btn text-dark px-3 shadow-sm">
-                                        <i class="bi bi-patch-question"></i> Verify Drop
+                                {% elif d.status == "In Transit" %}
+                                    <a href="{% url 'update_status' d.id 'Waiting Confirmation' %}" class="btn btn-warning btn-sm action-bar-btn text-dark px-3 shadow-sm">
+                                        <i class="bi bi-bell-fill"></i> Request Confirmation
                                     </a>
-                                {% endif %}
-                                {% if d.status == "Delivered" %}
+                                {% elif d.status == "Waiting Confirmation" or d.status == "Arrived" %}
+                                    <button class="btn btn-secondary btn-sm action-bar-btn text-white px-3 shadow-sm" disabled>
+                                        <i class="bi bi-hourglass-split"></i> Awaiting Client
+                                    </button>
+                                {% elif d.status == "Delivered" %}
                                     <button class="btn btn-light btn-sm action-bar-btn px-3 border" disabled>
                                         <i class="bi bi-shield-lock-fill text-muted"></i> Log Finalized
                                     </button>
@@ -479,6 +482,7 @@ body {
                 <p class="text-muted small mb-0">Your dispatch manifest stack is completely clean right now. Standby for push queues.</p>
             </div>
         {% endif %}
+        </div>
     </div>
 
     <div id="activity" class="section">
@@ -532,25 +536,27 @@ body {
                         <span class="badge bg-primary-subtle text-primary rounded-pill">Real-time Tracker</span>
                     </div>
 
+                    <div class="timeline-logs" id="live-timeline-logs">
                     {% if deliveries %}
-                        <div class="timeline-logs">
                         {% for d in deliveries|slice:":10" %}
-                            <div class="timeline-item">
-                                {% if d.status == "Delivered" %}
-                                    <div class="timeline-icon border-success text-success"><i class="bi bi-patch-check-fill"></i></div>
-                                {% elif d.status == "In Transit" %}
-                                    <div class="timeline-icon border-info text-info"><i class="bi bi-play-circle-fill"></i></div>
-                                {% elif d.status == "Waiting Confirmation" %}
-                                    <div class="timeline-icon border-warning text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                                {% else %}
-                                    <div class="timeline-icon border-secondary text-muted"><i class="bi bi-hourglass-split"></i></div>
-                                {% endif %}
+                            <div class="timeline-item" id="timeline-item-{{ d.id }}">
+                                <div class="timeline-icon {% if d.status == 'Delivered' %}border-success text-success{% elif d.status == 'In Transit' %}border-info text-info{% elif d.status == 'Waiting Confirmation' %}border-warning text-warning{% else %}border-secondary text-muted{% endif %}" id="timeline-icon-{{ d.id }}">
+                                    {% if d.status == "Delivered" %}
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    {% elif d.status == "In Transit" %}
+                                        <i class="bi bi-play-circle-fill"></i>
+                                    {% elif d.status == "Waiting Confirmation" %}
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-hourglass-split"></i>
+                                    {% endif %}
+                                </div>
 
                                 <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
                                     <div>
                                         <span class="text-dark fw-semibold d-block mb-1" style="font-size: 14.5px;">
                                             Delivery Manifest <b class="text-primary">#{{ d.id }}</b> state flagged as 
-                                            <span class="badge {% if d.status == 'Delivered' %}bg-success-subtle text-success{% elif d.status == 'In Transit' %}bg-info-subtle text-info{% else %}bg-warning-subtle text-warning{% endif %} px-2 py-0.5 small fw-medium text-capitalize">
+                                            <span id="timeline-badge-{{ d.id }}" class="badge {% if d.status == 'Delivered' %}bg-success-subtle text-success{% elif d.status == 'In Transit' %}bg-info-subtle text-info{% else %}bg-warning-subtle text-warning{% endif %} px-2 py-0.5 small fw-medium text-capitalize">
                                                 {{ d.status }}
                                             </span>
                                         </span>
@@ -564,14 +570,14 @@ body {
                                 </div>
                             </div>
                         {% endfor %}
-                        </div>
                     {% else %}
-                        <div class="text-center text-muted py-5">
+                        <div class="text-center text-muted py-5" id="timeline-empty-msg">
                             <i class="bi bi-hdd-network fs-1 d-block mb-2 text-secondary-subtle"></i>
                             <h6 class="fw-bold text-dark">No Core Historical Operations</h6>
                             <p class="small text-muted mb-0">State modifications logged on assigned shipments will pop up chronologically here.</p>
                         </div>
                     {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -582,7 +588,7 @@ body {
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags|default:'success' }} alert-dismissible fade show shadow-sm mb-4" role="alert">
                     <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-alert="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         {% endif %}
@@ -627,7 +633,7 @@ body {
                     </div>
                     <div class="d-flex justify-content-between text-start mb-3">
                         <span class="text-muted fw-medium"><i class="bi bi-box-seam text-info me-2"></i>Total Drops</span>
-                        <span class="text-dark fw-bold">{{ delivered_count|default:"0" }}</span>
+                        <span class="text-dark fw-bold sync-delivered-count">{{ delivered_count|default:"0" }}</span>
                     </div>
                     <div class="d-flex justify-content-between text-start">
                         <span class="text-muted fw-medium"><i class="bi bi-shield-lock text-danger me-2"></i>Tier</span>
@@ -709,6 +715,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         showSection('dashboard', document.getElementById('menu-dashboard'));
     }
+
+    // Initialize Global real-time dynamic sync listeners
+    initLiveSyncAgent();
 });
 
 function showSection(sectionId, element) {
@@ -935,6 +944,128 @@ async function processVideoFrameFeed() {
             'rider': "{{ request.user.username }}",
             'predictions': framePredictions
         }));
+    }
+}
+
+// ======================== CUSTOMER DROP CONFIRMATION REAL-TIME AGENT ========================
+function initLiveSyncAgent() {
+    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    // Connects to a standard updates channel, or falls back to polling smoothly
+    const syncSocket = new WebSocket(`${wsScheme}${window.location.host}/ws/delivery-updates/`);
+
+    syncSocket.onmessage = function(event) {
+        const messageData = JSON.parse(event.data);
+        if (messageData.type === "delivery_status_update" || messageData.status === "Delivered") {
+            executeDOMDeliveryUpdate(messageData.delivery_id, messageData.status, messageData.metrics);
+        }
+    };
+
+    syncSocket.onerror = function() {
+        console.warn("Status WebSocket error. Initializing dynamic live polling backup fallback loop.");
+        startPollingSyncFallback();
+    };
+    
+    syncSocket.onclose = function() {
+        startPollingSyncFallback();
+    };
+}
+
+// Backup Short-Polling Engine ensures updates succeed regardless of Channels config
+let pollingActive = false;
+function startPollingSyncFallback() {
+    if (pollingActive) return;
+    pollingActive = true;
+    setInterval(async () => {
+        try {
+            const response = await fetch(window.location.pathname + "?format=json");
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.deliveries) {
+                    data.deliveries.forEach(del => {
+                        executeDOMDeliveryUpdate(del.id, del.status, data.metrics);
+                    });
+                }
+            }
+        } catch (err) {
+            console.debug("Polling sync temporary timeout:", err);
+        }
+    }, 4000);
+}
+
+function executeDOMDeliveryUpdate(deliveryId, newStatus, currentMetrics) {
+    // 1. Update the Card Frame Style if present
+    const cardBox = document.getElementById(`delivery-card-box-${deliveryId}`);
+    if (cardBox) {
+        cardBox.className = `card-box h-100 delivery-card status-${newStatus.toLowerCase().replace(' ', '-')}`;
+    }
+
+    // 2. Update Status Badge text & classes
+    const badgeContainer = document.getElementById(`delivery-badge-${deliveryId}`);
+    if (badgeContainer) {
+        if (newStatus === "Delivered") {
+            badgeContainer.innerHTML = `<span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-medium"><i class="bi bi-check2-circle me-1"></i>Delivered</span>`;
+        } else if (newStatus === "In Transit") {
+            badgeContainer.innerHTML = `<span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill fw-medium"><i class="bi bi-arrow-repeat spin me-1"></i>In Transit</span>`;
+        }
+    }
+
+    // 3. Update Action Buttons to match finalized lifecycle state
+    const actionsContainer = document.getElementById(`delivery-actions-${deliveryId}`);
+    if (actionsContainer && newStatus === "Delivered") {
+        actionsContainer.innerHTML = `<button class="btn btn-light btn-sm action-bar-btn px-3 border" disabled><i class="bi bi-shield-lock-fill text-muted"></i> Log Finalized</button>`;
+    }
+
+    // 4. Update Chronological Feed Timeline Items
+    const timelineBadge = document.getElementById(`timeline-badge-${deliveryId}`);
+    const timelineIcon = document.getElementById(`timeline-icon-${deliveryId}`);
+    if (timelineBadge) {
+        timelineBadge.className = "badge bg-success-subtle text-success px-2 py-0.5 small fw-medium text-capitalize";
+        timelineBadge.innerText = newStatus;
+    }
+    if (timelineIcon) {
+        timelineIcon.className = "timeline-icon border-success text-success";
+        timelineIcon.innerHTML = `<i class="bi bi-patch-check-fill"></i>`;
+    }
+
+    // 5. Update Global Quantitative Counters & Progress Indicators dynamically
+    if (currentMetrics) {
+        document.querySelectorAll('.sync-delivery-count').forEach(el => el.innerText = currentMetrics.delivery_count);
+        document.querySelectorAll('.sync-transit-count').forEach(el => el.innerText = currentMetrics.in_transit_count);
+        document.querySelectorAll('.sync-delivered-count').forEach(el => el.innerText = currentMetrics.delivered_count);
+        
+        const syncPending = document.getElementById('sync-pending-count');
+        if (syncPending) syncPending.innerText = currentMetrics.pending_count;
+
+        const badgePend = document.getElementById('manifest-badge-pending');
+        const badgeTran = document.getElementById('manifest-badge-transit');
+        if (badgePend) badgePend.innerText = currentMetrics.pending_count;
+        if (badgeTran) badgeTran.innerText = currentMetrics.in_transit_count;
+
+        // Animate progress percentages seamlessly
+        if (currentMetrics.delivery_count > 0) {
+            const compPct = Math.round((currentMetrics.delivered_count / currentMetrics.delivery_count) * 100);
+            const payloadPct = Math.round((currentMetrics.in_transit_count / currentMetrics.delivery_count) * 100);
+
+            const compTxt = document.getElementById('completion-rate-text');
+            const compBar = document.getElementById('completion-rate-bar');
+            if (compTxt) compTxt.innerText = compPct + "%";
+            if (compBar) compBar.style.width = compPct + "%";
+
+            const payTxt = document.getElementById('payload-rate-text');
+            const payBar = document.getElementById('payload-rate-bar');
+            if (payTxt) payTxt.innerText = payloadPct + "%";
+            if (payBar) payBar.style.width = payloadPct + "%";
+        }
+        
+        // Re-check assignment active banner
+        const statusBanner = document.getElementById('active-route-status-container');
+        if (statusBanner) {
+            if (currentMetrics.in_transit_count > 0) {
+                statusBanner.innerHTML = `<small class="text-muted d-block font-monospace" style="font-size:11px;">CURRENT ASSIGNMENT STATUS</small><span class="badge bg-info text-white" id="route-badge-active"><i class="bi bi-truck me-1"></i>On active route</span>`;
+            } else {
+                statusBanner.innerHTML = `<small class="text-muted d-block font-monospace" style="font-size:11px;">CURRENT ASSIGNMENT STATUS</small><span class="badge bg-secondary text-white" id="route-badge-active"><i class="bi bi-house me-1"></i>Awaiting Dispatch</span>`;
+            }
+        }
     }
 }
 </script>

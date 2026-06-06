@@ -4,1072 +4,1144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
+<title>Rider Dashboard</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" crossorigin="" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" rel="stylesheet" crossorigin="anonymous" />
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
 <style>
 :root {
-    --primary-bg: #0b1f3a;
-    --primary-hover: #1e3a5f;
+    --primary-bg: #0f2a3d;
+    --primary-hover: #1f4b6e;
+    --accent-color: #0d6efd;
     --body-bg: #f4f6fb;
+    --card-radius: 16px;
+    --transition-speed: 0.25s;
 }
 
 body {
-    background: var(--body-bg);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--body-bg);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    color: #2b303a;
+    overflow-x: hidden;
 }
 
-/* SIDEBAR */
+/* SIDEBAR RE-DESIGN */
 .sidebar {
     width: 260px;
     height: 100vh;
     position: fixed;
     background: var(--primary-bg);
     color: white;
-    padding: 20px 15px;
-    overflow-y: auto;
-    transition: transform 0.3s ease;
-    z-index: 1040;
+    padding: 24px 20px;
+    transition: all var(--transition-speed) ease;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+    z-index: 100;
 }
 
-.sidebar a {
+.profile-box {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 15px;
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    border-radius: 8px;
-    margin-top: 5px;
+    padding: 12px 16px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    margin-top: 8px;
+    color: rgba(255,255,255,0.75);
     font-weight: 500;
+    transition: all var(--transition-speed) ease;
 }
 
-.sidebar a:hover, .sidebar a.active {
+.nav-item i {
+    font-size: 1.15rem;
+}
+
+.nav-item:hover, .active-menu {
     background: var(--primary-hover);
     color: white;
 }
 
-/* MAIN */
+/* MAIN CONTENT AREA */
 .main {
     margin-left: 260px;
-    padding: 24px;
-    transition: margin-left 0.3s ease;
+    padding: 30px;
+    transition: all var(--transition-speed) ease;
 }
 
-/* TOP BAR */
 .topbar {
     background: white;
     padding: 18px 24px;
-    border-radius: 16px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border-radius: var(--card-radius);
+    margin-bottom: 25px;
+    border: none;
 }
 
-/* CARDS */
 .card-box {
     background: white;
     padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 16px rgba(15, 42, 61, 0.04);
+    border: 1px solid rgba(15, 42, 61, 0.03);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
-/* SECTION SYSTEM */
-.section { display: none; }
-.active-section { display: block; animation: fadeIn 0.4s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* TABLE */
-.table { border-radius: 10px; overflow: hidden; }
-
-/* MAPS & AI STREAMS */
-#map {
-    width: 100%;
-    height: 450px;
-    border-radius: 12px;
+.interactive-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(15, 42, 61, 0.08);
+    cursor: pointer;
 }
-.stream-container {
+
+/* REAL-LIFE USABILITY STYLING */
+.delivery-card {
+    border-left: 5px solid #6c757d;
+}
+.delivery-card.status-pending { border-left-color: #ffc107; }
+.delivery-card.status-transit { border-left-color: #0dcedc; }
+.delivery-card.status-delivered { border-left-color: #198754; }
+
+.action-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+/* TIMELINE TRACKING LOGS */
+.timeline-logs {
     position: relative;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
+    padding-left: 32px;
+}
+.timeline-logs::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 15px;
+    bottom: 5px;
+    width: 2px;
+    background: #e9ecef;
+}
+.timeline-item {
+    position: relative;
+    padding-bottom: 24px;
+}
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+.timeline-icon {
+    position: absolute;
+    left: -27px;
+    top: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    border: 2px solid #6c757d;
+    z-index: 2;
+}
+
+/* SECTIONS PANEL VIEWPORTS */
+.section { display: none; }
+.active-section { display: block; }
+
+/* MOBILE RESPONSIVENESS */
+.menu-btn {
+    display: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--primary-bg);
+}
+
+/* AI COMPUTER VISION VIEWPORTS */
+.camera-container {
+    position: relative;
     width: 100%;
     max-width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000;
     aspect-ratio: 4/3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
 }
-.stream-video {
+#webcamView {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    transform: scaleX(-1);
 }
-.stream-badge {
+#aiCanvas {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    transform: scaleX(-1);
+}
+.ai-status-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
     z-index: 10;
-}
-.pulse-badge {
-    animation: pulse-animation 2s infinite;
-}
-@keyframes pulse-animation {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 6px 12px !important;
 }
 
-/* MOBILE */
-.menu-btn { display: none; font-size: 26px; cursor: pointer; color: var(--primary-bg); }
-@media (max-width: 991px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.show { transform: translateX(0); }
-    .main { margin-left: 0; padding: 15px; }
-    .menu-btn { display: block; }
+.blink {
+    animation: blinker 1.5s linear infinite;
+}
+@keyframes blinker {
+    50% { opacity: 0; }
+}
+
+@media (max-width: 992px) {
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+    }
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    .main {
+        margin-left: 0;
+        padding: 15px;
+    }
+    .menu-btn {
+        display: block;
+    }
 }
 </style>
 </head>
 <body>
 
 <div class="sidebar" id="sidebar">
-    <h5 class="text-white fw-bold mb-4 px-2"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Admin Core</h5>
-    <a class="active" onclick="showSection('dashboard', this)"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
-    <a onclick="showSection('deliveries', this)"><i class="bi bi-box-seam-fill"></i> Deliveries & Parcels</a>
-    <a onclick="showSection('tracking', this)"><i class="bi bi-radar"></i> Live Tracking & AI</a>
-    <a onclick="showSection('alerts', this)"><i class="bi bi-bell-fill"></i> System Alerts</a>
-    <a onclick="showSection('reports', this)"><i class="bi bi-file-earmark-bar-graph-fill"></i> Real-Time Reports</a>
-    <a onclick="showSection('analytics', this)"><i class="bi bi-pie-chart-fill"></i> Analytics</a>
-    <a onclick="showSection('riders', this)"><i class="bi bi-bicycle"></i> Riders</a>
-    <a onclick="showSection('customers', this)"><i class="bi bi-people-fill"></i> Customers</a>
-    <a href="{% url 'logout' %}" class="mt-5 text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    <div class="profile-box">
+        {% if request.user.profile_picture %}
+            <img src="{{ request.user.profile_picture.url }}" width="75" height="75" class="rounded-circle mb-2 border border-2 border-white shadow-sm" style="object-fit: cover;">
+        {% else %}
+            <div class="bg-white text-dark d-inline-flex justify-content-center align-items-center rounded-circle mb-2 shadow-sm" style="width:70px; height:70px; font-size:32px;">🚴</div>
+        {% endif %}
+        <h6 class="mt-2 mb-0 text-white fw-bold">{{ request.user.first_name }} {{ request.user.last_name }}</h6>
+        <small class="text-success d-inline-flex align-items-center gap-1 mt-1">
+            <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Online Fleet
+        </small>
+    </div>
+
+    <div class="nav-item active-menu" id="menu-dashboard" onclick="showSection('dashboard', this)">
+        <i class="bi bi-grid-1x2"></i> Dashboard
+    </div>
+    <div class="nav-item" id="menu-deliveries" onclick="showSection('deliveries', this)">
+        <i class="bi bi-box-seam"></i> Deliveries
+    </div>
+    <div class="nav-item" id="menu-activity" onclick="showSection('activity', this)">
+        <i class="bi bi-clock-history"></i> Activity Logs
+    </div>
+    <div class="nav-item" id="menu-profile" onclick="showSection('profile', this)">
+        <i class="bi bi-person-gear"></i> Profile
+    </div>
+    <a href="{% url 'logout' %}" class="nav-item text-white text-decoration-none mt-5 bg-danger-subtle text-danger">
+        <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
 </div>
 
 <div class="main">
-    <div class="topbar d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-list menu-btn" onclick="toggleSidebar()"></i>
-            <div>
-                <h5 class="fw-bold mb-0 text-dark">Command Center</h5>
-                <small class="text-muted">Master control and telemetry overview</small>
-            </div>
-        </div>
-        <div>
-            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill border border-success-subtle fw-semibold">
-                <i class="bi bi-broadcast me-1"></i> System Online
-            </span>
-        </div>
+    <div class="topbar d-flex justify-content-between align-items-center shadow-sm">
+        <h5 id="breadcrumb" class="mb-0 fw-bold text-dark"><i class="bi bi-grid-1x2-fill text-primary me-2"></i>Rider Dashboard</h5>
+        <i class="bi bi-list menu-btn" onclick="toggleSidebar()"></i>
     </div>
 
     <div id="dashboard" class="section active-section">
-        {% for d in recent_deliveries %}
-            {% if d.alert_triggered %}
-                <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                    <div><strong>Anomaly Detected!</strong> Spatial deviation logged for Delivery Assignment #{{ d.id }}.</div>
-                </div>
-            {% endif %}
-        {% endfor %}
-
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card-box d-flex align-items-center justify-content-between h-100">
-                    <div>
-                        <span class="text-muted text-uppercase small fw-bold font-monospace mb-1 d-block">Customers</span>
-                        <h3 class="fw-bold m-0 text-dark">{{ customers.count }}</h3>
-                    </div>
-                    <div class="p-3 bg-primary-subtle text-primary rounded-circle"><i class="bi bi-people fs-4"></i></div>
-                </div>
+        <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Welcome Back, {{ request.user.first_name|default:request.user.username }}!</h4>
+                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> Live assigned metrics operational hub</small>
             </div>
-            <div class="col-md-3">
-                <div class="card-box d-flex align-items-center justify-content-between h-100">
-                    <div>
-                        <span class="text-muted text-uppercase small fw-bold font-monospace mb-1 d-block">Riders</span>
-                        <h3 class="fw-bold m-0 text-dark">{{ riders.count }}</h3>
-                    </div>
-                    <div class="p-3 bg-success-subtle text-success rounded-circle"><i class="bi bi-bicycle fs-4"></i></div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-box d-flex align-items-center justify-content-between h-100">
-                    <div>
-                        <span class="text-muted text-uppercase small fw-bold font-monospace mb-1 d-block">Deliveries</span>
-                        <h3 class="fw-bold m-0 text-dark">{{ deliveries }}</h3>
-                    </div>
-                    <div class="p-3 bg-warning-subtle text-warning rounded-circle"><i class="bi bi-box-seam fs-4"></i></div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-box d-flex align-items-center justify-content-between h-100">
-                    <div>
-                        <span class="text-muted text-uppercase small fw-bold font-monospace mb-1 d-block">Pending</span>
-                        <h3 class="fw-bold m-0 text-dark">{{ pending_count }}</h3>
-                    </div>
-                    <div class="p-3 bg-danger-subtle text-danger rounded-circle"><i class="bi bi-hourglass-split fs-4"></i></div>
-                </div>
+            <div class="bg-white px-3 py-2 rounded-3 border shadow-sm text-end" id="active-route-status-container">
+                <small class="text-muted d-block font-monospace" style="font-size:11px;">CURRENT ASSIGNMENT STATUS</small>
+                {% if in_transit_count > 0 %}
+                    <span class="badge bg-info text-white" id="route-badge-active"><i class="bi bi-truck me-1"></i>On active route</span>
+                {% else %}
+                    <span class="badge bg-secondary text-white" id="route-badge-active"><i class="bi bi-house me-1"></i>Awaiting Dispatch</span>
+                {% endif %}
             </div>
         </div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-md-7">
-                <div class="card-box h-100">
-                    <h6 class="fw-bold text-dark mb-4"><i class="bi bi-bar-chart-steps text-primary me-2"></i>Global Dispatch Status</h6>
-                    {% if deliveries > 0 %}
-                        {% with total=deliveries %}
-                            {% widthratio delivered_count total 100 as delivered_pct %}
-                            {% widthratio transit_count total 100 as transit_pct %}
-                            {% widthratio pending_count total 100 as pending_pct %}
+        <div class="row g-3">
+            <div class="col-lg-12">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card-box interactive-card text-center border-start border-primary border-4" onclick="document.getElementById('menu-deliveries').click();">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1" style="font-size: 11px;">Queue</span>
+                                <i class="bi bi-folder2-open fs-4 text-primary"></i>
+                            </div>
+                            <h6 class="text-muted text-start mb-1 fw-semibold">Assigned</h6>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h2 class="fw-bold text-dark m-0 sync-delivery-count">{{ delivery_count }}</h2>
+                                <small class="text-muted">total items</small>
+                            </div>
+                            <div class="text-start mt-3 pt-2 border-top text-primary font-monospace" style="font-size: 12px;">
+                                View Cargo Inventory <i class="bi bi-arrow-right ms-1"></i>
+                            </div>
+                        </div>
+                    </div>
 
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between small mb-1 fw-semibold text-success">
-                                    <span>Delivered Network Drops</span>
-                                    <span>{{ delivered_pct }}% ({{ delivered_count }})</span>
-                                </div>
-                                <div class="progress" style="height: 8px;"><div class="progress-bar bg-success" style="width: {{ delivered_pct }}%"></div></div>
+                    <div class="col-md-4">
+                        <div class="card-box interactive-card text-center border-start border-info border-4" onclick="document.getElementById('menu-activity').click();">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1" style="font-size: 11px;">Active</span>
+                                <i class="bi bi-truck fs-4 text-info"></i>
                             </div>
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between small mb-1 fw-semibold text-info">
-                                    <span>Active In-Transit Nodes</span>
-                                    <span>{{ transit_pct }}% ({{ transit_count }})</span>
-                                </div>
-                                <div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: {{ transit_pct }}%"></div></div>
+                            <h6 class="text-muted text-start mb-1 fw-semibold">In Transit</h6>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h2 class="fw-bold text-dark m-0 sync-transit-count">{{ in_transit_count }}</h2>
+                                <small class="text-muted">on road</small>
                             </div>
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between small mb-1 fw-semibold text-warning">
-                                    <span>Pending Queue Buffer</span>
-                                    <span>{{ pending_pct }}% ({{ pending_count }})</span>
-                                </div>
-                                <div class="progress" style="height: 8px;"><div class="progress-bar bg-warning" style="width: {{ pending_pct }}%"></div></div>
+                            <div class="text-start mt-3 pt-2 border-top text-info font-monospace" style="font-size: 12px;">
+                                Monitor Active Feeds <i class="bi bi-arrow-right ms-1"></i>
                             </div>
-                        {% endwith %}
-                    {% else %}
-                        <p class="text-muted text-center py-4">No payload metrics compiled yet.</p>
-                    {% endif %}
-                </div>
-            </div>
+                        </div>
+                    </div>
 
-            <div class="col-md-5">
-                <div class="card-box h-100">
-                    <h6 class="fw-bold text-dark mb-4"><i class="bi bi-lightning-charge text-primary me-2"></i>Command Macros</h6>
-                    <div class="d-flex flex-column gap-3">
-                        <a href="{% url 'create_delivery' %}" class="btn btn-primary w-100 shadow-sm py-2"><i class="bi bi-plus-circle me-1"></i> Authorize New Dispatch</a>
-                        <button class="btn btn-outline-dark w-100 py-2" onclick="showSection('deliveries', document.querySelector('.sidebar a:nth-child(3)'))"><i class="bi bi-box-seam me-1"></i> Manage active parcels</button>
-                        <button class="btn btn-outline-secondary w-100 py-2" onclick="showSection('tracking', document.querySelector('.sidebar a:nth-child(4)'))"><i class="bi bi-radar me-1"></i> Open neural tracker</button>
+                    <div class="col-md-4">
+                        <div class="card-box interactive-card text-center border-start border-success border-4" onclick="document.getElementById('menu-deliveries').click();">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1" style="font-size: 11px;">Done</span>
+                                <i class="bi bi-check-circle fs-4 text-success"></i>
+                            </div>
+                            <h6 class="text-muted text-start mb-1 fw-semibold">Delivered</h6>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h2 class="fw-bold text-dark m-0 sync-delivered-count">{{ delivered_count }}</h2>
+                                <small class="text-muted">completed</small>
+                            </div>
+                            <div class="text-start mt-3 pt-2 border-top text-success font-monospace" style="font-size: 12px;">
+                                Review Completed Logs <i class="bi bi-arrow-right ms-1"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="card-box">
-            <h6 class="fw-bold text-dark mb-4">Latest Logged Operations</h6>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-uppercase small text-secondary">
-                        <tr>
-                            <th>Ref ID</th>
-                            <th>Customer Node</th>
-                            <th>Status Condition</th>
-                            <th>Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for d in recent_deliveries %}
-                        <tr>
-                            <td class="fw-bold">#{{ d.id }}</td>
-                            <td>{{ d.customer.username }}</td>
-                            <td>
-                                <span class="badge rounded-pill px-3 py-1 fw-medium
-                                    {% if d.status == 'Delivered' %}bg-success-subtle text-success
-                                    {% elif d.status == 'In Transit' %}bg-info-subtle text-info
-                                    {% elif d.status == 'Pending' %}bg-warning-subtle text-warning
-                                    {% else %}bg-secondary-subtle text-secondary{% endif %}">
-                                    {{ d.status }}
-                                </span>
-                            </td>
-                            <td class="text-muted small font-monospace">{{ d.created_at|date:"M d, Y H:i" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="text-center text-muted py-4">Registry is currently empty.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-7">
+                        <div class="card-box h-100">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-graph-up text-primary me-2"></i>Dynamic Delivery Performance Metrics</h6>
+                            <div class="p-3 mb-3 bg-light rounded-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-dark fw-medium" style="font-size: 14px;"><i class="bi bi-award me-1 text-success"></i> Completion Rate</span>
+                                    <span class="fw-bold font-monospace text-success" id="completion-rate-text">{% widthratio delivered_count delivery_count 100 %}%</span>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="completion-rate-bar" style="width: {% widthratio delivered_count delivery_count 100 %}%"></div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-light rounded-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-dark fw-medium" style="font-size: 14px;"><i class="bi bi-compass me-1 text-info"></i> Dispatch Activity Payload</span>
+                                    <span class="fw-bold font-monospace text-info" id="payload-rate-text">{% widthratio in_transit_count delivery_count 100 %}%</span>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" id="payload-rate-bar" style="width: {% widthratio in_transit_count delivery_count 100 %}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="card-box h-100">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-square text-primary me-2"></i>Quick Diagnostics Checklist</h6>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
+                                    <div class="text-muted"><i class="bi bi-geo-alt text-primary me-2"></i>Assigned Shipments</div>
+                                    <span class="badge bg-secondary font-monospace fw-bold fs-6 sync-delivery-count">{{ delivery_count }}</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
+                                    <div class="text-muted"><i class="bi bi-play-circle text-info me-2"></i>Active Manifests</div>
+                                    <span class="badge bg-info text-white font-monospace fw-bold fs-6 sync-transit-count">{{ in_transit_count }}</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
+                                    <div class="text-muted"><i class="bi bi-shield-check text-success me-2"></i>Success Dispatches</div>
+                                    <span class="badge bg-success text-white font-monospace fw-bold fs-6 sync-delivered-count">{{ delivered_count }}</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
+                                    <div class="text-muted"><i class="bi bi-hourglass-split text-warning me-2"></i>Awaiting Pickup</div>
+                                    <span class="badge bg-warning text-dark font-monospace fw-bold fs-6" id="sync-pending-count">{{ pending_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="deliveries" class="section">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <div>
-                <h4 class="fw-bold text-dark mb-1">Deliveries & Parcels Management</h4>
-                <small class="text-muted">Search, filter, and review comprehensive consignment structures.</small>
-            </div>
-            <a href="{% url 'create_delivery' %}" class="btn btn-primary px-4 rounded-pill shadow-sm"><i class="bi bi-plus-lg me-1"></i> New Assignment</a>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-2">
-            <div class="row g-2">
-                <div class="col-md-8">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0 shadow-none" placeholder="Search vectors by customer, rider, or coordinates...">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <select id="statusFilter" class="form-select shadow-none">
-                        <option value="">Filter by Status: All</option>
-                        <option value="Pending">Pending</option>
-                        <option value="In Transit">In Transit</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Failed">Failed</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-box p-0 overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-secondary text-uppercase small">
-                        <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Customer</th>
-                            <th>Rider Unit</th>
-                            <th>State</th>
-                            <th>Geo-Address</th>
-                            <th class="pe-4">Creation Log</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deliveryTable">
-                        {% for d in recent_deliveries %}
-                        <tr data-status="{{ d.status }}" style="cursor: pointer;"
-                            onclick="showModal('{{ d.id }}', '{{ d.customer.username|escapejs }}', '{{ d.rider.username|default:"Not Assigned"|escapejs }}', '{{ d.status|escapejs }}', '{{ d.address|default:"N/A"|escapejs }}', '{{ d.created_at|date:"M d, Y H:i"|escapejs }}')">
-                            <td class="ps-4 fw-bold">#{{ d.id }}</td>
-                            <td>{{ d.customer.username }}</td>
-                            <td><i class="bi bi-person me-1 text-muted"></i>{{ d.rider.username|default:"Unassigned" }}</td>
-                            <td>
-                                <span class="badge rounded-pill px-3 py-1 fw-medium
-                                    {% if d.status == 'Delivered' %}bg-success-subtle text-success
-                                    {% elif d.status == 'In Transit' %}bg-info-subtle text-info
-                                    {% elif d.status == 'Pending' %}bg-warning-subtle text-warning
-                                    {% else %}bg-danger-subtle text-danger{% endif %}">
-                                    {{ d.status }}
-                                </span>
-                            </td>
-                            <td class="text-truncate" style="max-width: 200px;">
-                                <i class="bi bi-geo-alt text-danger me-1"></i> {{ d.address|default:"No address" }}
-                            </td>
-                            <td class="pe-4 text-muted small font-monospace">{{ d.created_at|date:"M d, H:i" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>No manifests found</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="tracking" class="section">
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-radar text-primary me-2"></i>Live Telemetry & Neural Monitor</h4>
-                <small class="text-muted">Real-time computer vision streams and spatial tracking diagnostics.</small>
+                <h4 class="fw-bold mb-1 text-dark">Active Manifest Registry</h4>
+                <small class="text-muted">Manage client drop-offs, routes, and status confirmation triggers in real-time.</small>
             </div>
-            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
-                <i class="bi bi-broadcast pulse-badge me-1"></i> Tracker Network Live
-            </span>
+            <div class="d-flex gap-2">
+                <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1 px-2.5 py-2 rounded-3"><i class="bi bi-hourglass"></i> <span id="manifest-badge-pending">{{ pending_count }}</span> Pending</span>
+                <span class="badge bg-info text-white d-inline-flex align-items-center gap-1 px-2.5 py-2 rounded-3"><i class="bi bi-truck"></i> <span id="manifest-badge-transit">{{ in_transit_count }}</span> On Road</span>
+            </div>
         </div>
 
-        <div id="integrated-ai-panel" class="d-none">
-            <div class="card border-0 bg-dark text-white mb-4 overflow-hidden shadow rounded-4">
-                <div class="card-header bg-black bg-opacity-25 d-flex justify-content-between align-items-center py-3 px-4 border-bottom border-secondary border-opacity-25">
-                    <h6 class="m-0 fw-bold text-danger"><i class="bi bi-cpu-fill pulse-badge me-2"></i>Active AI Object Pipeline (POV)</h6>
-                    <button class="btn-close btn-close-white btn-sm" onclick="closeGlobalAIMonitor()"></button>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row align-items-center g-4">
-                        <div class="col-lg-6">
-                            <div class="stream-container border border-secondary border-opacity-50 shadow-sm rounded-4 bg-black">
-                                <span class="badge bg-danger stream-badge px-3 py-1.5 shadow" id="aiStreamLabel">LIVE NEURAL INTERCEPT</span>
-                                <img id="aiMonitorVideo" class="stream-video" alt="Waiting for Remote Courier Stream...">
+        <div id="delivery-cards-container">
+        {% if deliveries %}
+            <div class="row g-3">
+            {% for d in deliveries %}
+                <div class="col-xl-6 delivery-item-wrapper" id="delivery-wrapper-{{ d.id }}">
+                    <div class="card-box h-100 delivery-card {% if d.status == 'Delivered' %}status-delivered{% elif d.status == 'In Transit' %}status-transit{% else %}status-pending{% endif %}" id="delivery-card-box-{{ d.id }}">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="text-muted font-monospace d-block mb-1" style="font-size: 12px;">INVENTORY ID</span>
+                                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-seam-fill text-secondary"></i> Ship #{{ d.id }}
+                                </h5>
+                            </div>
+                            <div id="delivery-badge-{{ d.id }}">
+                                {% if d.status == "Delivered" %}
+                                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-medium"><i class="bi bi-check2-circle me-1"></i>Delivered</span>
+                                {% elif d.status == "In Transit" %}
+                                    <span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill fw-medium"><i class="bi bi-arrow-repeat spin me-1"></i>In Transit</span>
+                                {% elif d.status == "Pending" %}
+                                    <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill fw-medium"><i class="bi bi-hourglass me-1"></i>Awaiting Pickup</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-medium">{{ d.status }}</span>
+                                {% endif %}
                             </div>
                         </div>
-                        <div class="col-lg-6">
-                            <div class="bg-black bg-opacity-25 rounded-4 p-4 border border-secondary border-opacity-25 h-100 d-flex flex-column justify-content-center position-relative">
-                                
-                                <div id="aiAnomalyWarning" class="alert alert-danger position-absolute top-0 start-0 w-100 d-none text-center rounded-top-4 fw-bold shadow-lg" style="z-index: 20;">
-                                    <i class="bi bi-exclamation-triangle-fill fs-4 d-block mb-1"></i>
-                                    ANOMALY DETECTED
-                                    <div id="aiAnomalyMessage" class="small fw-normal">Unrecognized object in delivery zone.</div>
-                                </div>
 
-                                <div class="mb-4 mt-3">
-                                    <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-1">Target Drone/Rider Vector</label>
-                                    <span id="aiActiveTarget" class="fw-bold text-info fs-5"><i class="bi bi-person-badge me-2"></i>Global Fleet Observation</span>
-                                </div>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-sm-6">
-                                        <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-1">Model Node State</label>
-                                        <span class="badge bg-success px-3 py-2 w-100 text-center fw-semibold rounded-3" id="modelStatus">
-                                            <i class="bi bi-broadcast me-1"></i>Remote Stream Active
-                                        </span>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-1">Inference Engine</label>
-                                        <span class="badge bg-primary px-3 py-2 w-100 text-center rounded-3"><i class="bi bi-layers me-1"></i>TensorFlow.js Edge</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-muted text-uppercase small font-monospace fw-bold d-block mb-2">Detected Bounding Anchors</label>
-                                    <div class="p-3 bg-dark bg-opacity-75 border border-secondary border-opacity-50 rounded-3 font-monospace text-warning" id="detectedObjects" style="min-height: 80px;">
-                                        Awaiting frame payload processing...
-                                    </div>
-                                </div>
+                        <div class="row g-2 border-top border-bottom py-3 my-3 bg-light-subtle rounded-3 px-1">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block font-monospace mb-1"><i class="bi bi-person text-primary me-1"></i>RECIPIENT CUSTOMER</small>
+                                <span class="fw-semibold text-dark text-capitalize">{{ d.customer.username }}</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block font-monospace mb-1"><i class="bi bi-calendar-event text-primary me-1"></i>DISPATCH TIMESTAMP</small>
+                                <span class="text-dark" style="font-size:14px;">{{ d.created_at|date:"M d, Y · H:i" }}</span>
+                            </div>
+                            <div class="col-12 mt-2 pt-2 border-top border-light">
+                                <small class="text-muted d-block font-monospace mb-1"><i class="bi bi-geo-alt text-danger me-1"></i>DESTINATION DROP-OFF ADDRESS</small>
+                                <span class="fw-medium text-dark d-block text-truncate-2" style="font-size: 14px;">{{ d.address }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-3 pt-1">
+                            <div class="d-flex gap-1.5">
+                                <a href="http://maps.google.com/?q={{ d.address|urlencode }}" target="_blank" class="btn btn-sm btn-outline-secondary action-bar-btn border border-secondary-subtle bg-white hover-shadow" title="Open Navigation">
+                                    <i class="bi bi-compass-fill text-danger"></i> Nav Maps
+                                </a>
+                            </div>
+
+                            <div class="d-flex gap-1" id="delivery-actions-{{ d.id }}">
+                                {% if d.status == "Pending" %}
+                                    <a href="{% url 'update_status' d.id 'In Transit' %}" class="btn btn-primary btn-sm action-bar-btn px-3 shadow-sm">
+                                        <i class="bi bi-play-fill"></i> Start Job
+                                    </a>
+                                {% elif d.status == "In Transit" %}
+                                    <a href="{% url 'update_status' d.id 'Waiting Confirmation' %}" class="btn btn-warning btn-sm action-bar-btn text-dark px-3 shadow-sm">
+                                        <i class="bi bi-bell-fill"></i> Request Confirmation
+                                    </a>
+                                {% elif d.status == "Waiting Confirmation" or d.status == "Arrived" %}
+                                    <button class="btn btn-secondary btn-sm action-bar-btn text-white px-3 shadow-sm" disabled>
+                                        <i class="bi bi-hourglass-split"></i> Awaiting Client
+                                    </button>
+                                {% elif d.status == "Delivered" %}
+                                    <button class="btn btn-light btn-sm action-bar-btn px-3 border" disabled>
+                                        <i class="bi bi-shield-lock-fill text-muted"></i> Log Finalized
+                                    </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
+            {% endfor %}
             </div>
-        </div>
-
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white py-3 border-0">
-                <h6 class="m-0 fw-bold text-dark"><i class="bi bi-geo-fill text-primary me-2"></i>Active GPS Mapping Operations</h6>
+        {% else %}
+            <div class="card-box text-center text-muted p-5 bg-white border border-dashed">
+                <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary-subtle"></i>
+                <h5 class="fw-bold text-dark">No Cargo Assignments</h5>
+                <p class="text-muted small mb-0">Your dispatch manifest stack is completely clean right now. Standby for push queues.</p>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-secondary small text-uppercase">
-                        <tr>
-                            <th class="ps-4">Consignee</th>
-                            <th>Rider Vector</th>
-                            <th>State</th>
-                            <th>Action Directives</th>
-                            <th class="pe-4 text-end">Update Pulse</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in latest_logs %}
-                        {% if log.delivery.status != "Delivered" %}
-                        <tr>
-                            <td class="ps-4 fw-bold text-dark">#{{ log.delivery.id }} {{ log.delivery.customer.username }}</td>
-                            <td><i class="bi bi-bicycle text-muted me-1"></i>{{ log.delivery.rider.username|default:"Unassigned" }}</td>
-                            <td><span class="badge bg-info-subtle text-info rounded-pill px-3">{{ log.delivery.status }}</span></td>
-                            <td>
-                                <div class="d-flex flex-wrap gap-2">
-                                    {% if log.latitude %}
-                                    <button class="btn btn-sm btn-primary d-inline-flex align-items-center rounded-3"
-                                       onclick="openMapModal('{{ log.delivery.customer.username|escapejs }}', '{{ log.delivery.rider.username|default:'Not Assigned'|escapejs }}', '{{ log.delivery.address|escapejs }}', {{ log.latitude }}, {{ log.longitude }}, {{ log.delivery.expected_latitude|default:log.latitude }}, {{ log.delivery.expected_longitude|default:log.longitude }})">
-                                        <i class="bi bi-map-fill me-1"></i> Track Node
-                                    </button>
-                                    {% endif %}
-                                    <button class="btn btn-sm btn-dark d-inline-flex align-items-center rounded-3" onclick="launchLiveAIMonitor('{{ log.delivery.rider.username|default:'Unassigned'|escapejs }}')">
-                                        <i class="bi bi-eye-fill me-1"></i> AI Vision
-                                    </button>
-                                </div>
-                            </td>
-                            <td class="pe-4 text-secondary small text-end font-monospace">{{ log.timestamp|date:"H:i:s" }}</td>
-                        </tr>
-                        {% endif %}
-                        {% empty %}
-                        <tr><td colspan="5" class="text-center text-muted py-5">No active telemetry nodes currently live.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        {% endif %}
         </div>
     </div>
 
-    <div id="alerts" class="section">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-bell-fill text-danger me-2"></i>Exception Control Deck</h4>
-                <small class="text-muted">High-priority buffers requiring administrative clearance.</small>
-            </div>
+    <div id="activity" class="section">
+        <div class="mb-4">
+            <h4 class="fw-bold mb-1 text-dark">Operational Control & Logs</h4>
+            <small class="text-muted">Monitor live AI computer vision safe-driving stream feedback and review job history.</small>
         </div>
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-secondary small text-uppercase">
-                        <tr>
-                            <th class="ps-4">Exception Class</th>
-                            <th>Description</th>
-                            <th>Priority</th>
-                            <th class="pe-4 text-end">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if pending_count > 0 %}
-                        <tr>
-                            <td class="ps-4 fw-bold font-monospace text-warning"><i class="bi bi-exclamation-triangle-fill"></i> PENDING_STALL</td>
-                            <td><strong class="text-dark">{{ pending_count }} consignments</strong> hanging unassigned.</td>
-                            <td><span class="badge bg-warning-subtle text-warning px-3 rounded-pill">Attention</span></td>
-                            <td class="pe-4 text-end">
-                                <a href="{% url 'delivery_list' %}" class="btn btn-sm btn-outline-primary">Review</a>
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% if failed_count > 0 %}
-                        <tr>
-                            <td class="ps-4 fw-bold font-monospace text-danger"><i class="bi bi-x-octagon-fill"></i> CRITICAL_FAIL</td>
-                            <td>Total validation failure for <strong class="text-dark">{{ failed_count }} tracking drops</strong>.</td>
-                            <td><span class="badge bg-danger-subtle text-danger px-3 rounded-pill">Critical</span></td>
-                            <td class="pe-4 text-end">
-                                <a href="{% url 'delivery_list' %}" class="btn btn-sm btn-outline-danger">Trace</a>
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% if pending_count == 0 and failed_count == 0 %}
-                        <tr><td colspan="4" class="text-center py-5 text-success"><i class="bi bi-shield-check display-4 d-block mb-2"></i>All Systems Nominal</td></tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="reports" class="section">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <div>
-                <h4 class="fw-bold text-dark mb-1"><i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>Live Operational Reports</h4>
-                <small class="text-muted" id="lastUpdated">Synchronizing with database...</small>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="spinner-border spinner-border-sm text-primary d-none" id="reportLoading" role="status"></div>
-                <button class="btn btn-success px-4 rounded-pill shadow-sm fw-medium d-inline-flex align-items-center" onclick="exportReportToExcel()">
-                    <i class="bi bi-file-earmark-excel me-2"></i> Download XLSX
-                </button>
-            </div>
-        </div>
-
-        <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm d-inline-flex" id="reportTab" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active rounded-pill px-4" id="daily-tab" data-bs-toggle="pill" data-bs-target="#daily" onclick="updateActivePeriod('daily')">Daily</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link rounded-pill px-4" id="weekly-tab" data-bs-toggle="pill" data-bs-target="#weekly" onclick="updateActivePeriod('weekly')">Weekly</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link rounded-pill px-4" id="monthly-tab" data-bs-toggle="pill" data-bs-target="#monthly" onclick="updateActivePeriod('monthly')">Monthly</button>
-            </li>
-        </ul>
-
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="activeReportTable">
-                    <thead class="table-light text-secondary small text-uppercase">
-                        <tr>
-                            <th class="ps-4" style="width: 15%">Log ID</th>
-                            <th style="width: 40%">Customer / Client</th>
-                            <th style="width: 25%">Operational Status</th>
-                            <th class="pe-4" style="width: 20%">Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reportTableBody">
-                        <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
-                                <div class="spinner-grow text-primary spinner-grow-sm me-2"></div>
-                                Fetching live telemetry records...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="analytics" class="section">
-        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-pie-chart text-primary me-2"></i>Performance Analytics</h4>
+        
         <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card-box h-100">
-                    <h6 class="fw-bold mb-4 text-center">Global Dispatch Distribution</h6>
-                    <div style="height:300px; position:relative; width:100%;">
-                        <canvas id="deliveryPerformanceChart"></canvas>
+            <div class="col-lg-5">
+                <div class="card-box border-top border-danger border-3 sticky-lg-top" style="top: 100px; z-index: 10;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark m-0"><i class="bi bi-camera-video-fill text-danger me-2"></i>Smart Safety Stream</h6>
+                        <span class="badge bg-light text-dark border font-monospace px-2 py-1" style="font-size: 11px;">COCO-SSD</span>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card-box h-100">
-                    <h6 class="fw-bold mb-4">System Efficiency Metrics</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Total Flow</span><span class="fw-bold">{{ deliveries }}</span>
-                    </div>
-                    <hr class="text-muted opacity-25">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-success">Completion Rate</span><span class="fw-bold">{% widthratio delivered_count deliveries 100|default:0 %}%</span>
-                    </div>
-                    <hr class="text-muted opacity-25">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-warning">Stagnation Rate</span><span class="fw-bold">{% widthratio pending_count deliveries 100|default:0 %}%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="riders" class="section">
-        <h4 class="fw-bold mb-4 text-dark">Fleet Rider Registry</h4>
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-uppercase small text-secondary">
-                        <tr><th class="ps-4">ID</th><th>Username</th><th>Email</th><th>Contact</th><th>Status</th></tr>
-                    </thead>
-                    <tbody id="ridersTableBody">
-                        {% for r in riders %}
-                        <tr>
-                            <td class="ps-4 fw-bold">#{{ r.id }}</td>
-                            <td>{{ r.username }}</td>
-                            <td>{{ r.email }}</td>
-                            <td>{{ r.contact_number|default:"N/A" }}</td>
-                            <td><span class="badge bg-success-subtle text-success px-3 rounded-pill">Active</span></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="5" class="text-center py-4 text-muted">No riders enrolled.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="customers" class="section">
-        <h4 class="fw-bold mb-4 text-dark">Consumer Database</h4>
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-uppercase small text-secondary">
-                        <tr><th class="ps-4">ID</th><th>Username</th><th>Email</th><th>Contact</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for c in customers %}
-                        <tr>
-                            <td class="ps-4 fw-bold">#{{ c.id }}</td>
-                            <td>{{ c.username }}</td>
-                            <td>{{ c.email }}</td>
-                            <td>{{ c.contact_number|default:"N/A" }}</td>
-                            <td><span class="badge bg-primary-subtle text-primary px-3 rounded-pill">Verified</span></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="5" class="text-center py-4 text-muted">No customers registered.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modal">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-4 p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold m-0">Consignment Data</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <p id="modalText" class="mb-0 lh-lg font-monospace small"></p>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="mapModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-      <div class="modal-header bg-dark py-3 border-bottom-0">
-        <h5 class="modal-title fw-bold text-white" id="mapModalLabel">Routing Node</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-0 bg-light">
-        <div id="mapWarning" class="alert alert-danger rounded-0 m-0 text-center fw-bold d-none border-0" role="alert"></div>
-        <div class="row g-0">
-            <div class="col-lg-8"><div id="map" style="border-radius:0;"></div></div>
-            <div class="col-lg-4 p-4 d-flex flex-column bg-white">
-                <div id="mapInfo" class="mb-4 small lh-lg"></div>
-                <hr class="text-muted opacity-25 my-0 mb-4">
-                <h6 class="fw-bold mb-3"><i class="bi bi-camera-video text-danger me-1"></i> Live Stream Link</h6>
-                <div class="stream-container border shadow-sm rounded-3 w-100 bg-black">
-                    <span class="badge bg-danger stream-badge pulse-badge">REC</span>
-                    <img id="modalPOVVideo" class="stream-video" alt="Waiting for Remote Courier Stream...">
-                </div>
-            </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> 
-<script>
-/* UI NAVIGATION */
-function showSection(id, el) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
-    const sec = document.getElementById(id);
-    if(sec) sec.classList.add('active-section');
-    
-    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-    if(el) {
-        el.classList.add('active');
-    } else {
-        const link = Array.from(document.querySelectorAll('.sidebar a')).find(a => a.getAttribute('onclick')?.includes(id));
-        if(link) link.classList.add('active');
-    }
-}
-function toggleSidebar() { document.getElementById("sidebar").classList.toggle("show"); }
-
-/* MODALS */
-function showModal(id, customer, rider, status, location, date) {
-    document.getElementById("modalText").innerHTML = `
-        <div class="row g-2">
-            <div class="col-4 text-muted fw-bold">Manifest ID:</div><div class="col-8">#${id}</div>
-            <div class="col-4 text-muted fw-bold">Customer:</div><div class="col-8">${customer}</div>
-            <div class="col-4 text-muted fw-bold">Assigned Rider:</div><div class="col-8">${rider}</div>
-            <div class="col-4 text-muted fw-bold">Status Pipeline:</div><div class="col-8"><span class="badge bg-primary">${status}</span></div>
-            <div class="col-4 text-muted fw-bold">Location Hash:</div><div class="col-8">${location}</div>
-            <div class="col-4 text-muted fw-bold">Time Epoch:</div><div class="col-8">${date}</div>
-        </div>`;
-    new bootstrap.Modal(document.getElementById('modal')).show();
-}
-
-/* DELIVERIES FILTERING */
-const searchInput = document.getElementById("searchInput");
-const statusFilter = document.getElementById("statusFilter");
-function filterTable() {
-    let search = searchInput.value.toLowerCase();
-    let status = statusFilter.value;
-    document.querySelectorAll("#deliveryTable tr").forEach(row => {
-        if(!row.children[3]) return;
-        let text = row.innerText.toLowerCase();
-        let statusCell = row.children[3].innerText.trim();
-        let matchSearch = text.includes(search);
-        let matchStatus = status === "" || statusCell === status;
-        row.style.display = (matchSearch && matchStatus) ? "" : "none";
-    });
-}
-if(searchInput && statusFilter) {
-    searchInput.addEventListener("keyup", filterTable);
-    statusFilter.addEventListener("change", filterTable);
-}
-
-/* REAL-TIME REPORTS API & EXCEL EXPORT (SHEETJS) */
-const reportEndpoints = {
-    'daily': '/api/reports/daily/',
-    'weekly': '/api/reports/weekly/',
-    'monthly': '/api/reports/monthly/'
-};
-let currentReportPeriod = 'daily';
-let loadedReportData = []; 
-
-function updateActivePeriod(period) {
-    currentReportPeriod = period;
-    fetchReportData(period);
-}
-
-async function fetchReportData(period) {
-    const loader = document.getElementById('reportLoading');
-    const tbody = document.getElementById('reportTableBody');
-    const updateText = document.getElementById('lastUpdated');
-    
-    if(loader) loader.classList.remove('d-none');
-
-    try {
-        const response = await fetch(reportEndpoints[period]);
-        if (!response.ok) throw new Error('Network context response dropped');
-        
-        const data = await response.json();
-        loadedReportData = data; 
-        
-        tbody.innerHTML = ''; 
-
-        if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-muted">No historical delivery database entries detected for this timeframe.</td></tr>`;
-        } else {
-            data.forEach(item => {
-                let statusBadge = 'bg-warning-subtle text-warning';
-                if(item.status === 'Delivered') statusBadge = 'bg-success-subtle text-success';
-                if(item.status === 'In Transit') statusBadge = 'bg-info-subtle text-info';
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="ps-4 font-monospace fw-bold text-secondary">#${item.id}</td>
-                        <td class="fw-semibold text-dark">${item.customer}</td>
-                        <td><span class="badge rounded-pill px-3 py-1 ${statusBadge}">${item.status}</span></td>
-                        <td class="pe-4 text-secondary small font-monospace">${item.time}</td>
-                    </tr>
-                `;
-            });
-        }
-        if(updateText) updateText.innerHTML = `<i class="bi bi-check2-circle text-success me-1"></i>System synced: ${new Date().toLocaleTimeString()}`;
-    } catch (error) {
-        console.error("Operational Polling Vector Fault:", error);
-        if(updateText) updateText.innerHTML = `<i class="bi bi-x-circle text-danger me-1"></i>Sync offline. Ensure API is running.`;
-    } finally {
-        if(loader) loader.classList.add('d-none');
-    }
-}
-
-function exportReportToExcel() {
-    if (!loadedReportData || loadedReportData.length === 0) {
-        alert("No live data available to export to spreadsheet.");
-        return;
-    }
-    const workbook = XLSX.utils.book_new();
-    const reportTitle = `${currentReportPeriod.toUpperCase()} LOGISTICS OPERATION REPORT`;
-    const extractionTimestamp = `Generated on: ${new Date().toLocaleDateString()} @ ${new Date().toLocaleTimeString()}`;
-    
-    const spreadsheetRows = [
-        [reportTitle],
-        [extractionTimestamp],
-        [],
-        ["Log Identifier", "Customer / Client Entity", "Current Progress Status", "System Logging Date-Time Indicator"]
-    ];
-
-    loadedReportData.forEach(item => {
-        spreadsheetRows.push([`#${item.id}`, item.customer, item.status.toUpperCase(), item.time]);
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet(spreadsheetRows);
-    worksheet['!cols'] = [{ wch: 18 }, { wch: 35 }, { wch: 25 }, { wch: 30 }];
-    worksheet['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }
-    ];
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Operational Telemetry");
-    const fileOutputString = `Logistics_Report_${currentReportPeriod}_${new Date().toISOString().slice(0,10)}.xlsx`;
-    XLSX.writeFile(workbook, fileOutputString);
-}
-
-/* REAL-TIME RIDERS API */
-async function fetchRidersData() {
-    try {
-        const response = await fetch('/api/riders/');
-        if (!response.ok) throw new Error('Riders network response dropped');
-        
-        const data = await response.json();
-        const tbody = document.getElementById('ridersTableBody');
-        
-        if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No riders enrolled.</td></tr>`;
-        } else {
-            tbody.innerHTML = '';
-            data.forEach(r => {
-                const contact = r.contact_number ? r.contact_number : "N/A";
-                const statusBadge = r.is_active !== false ? 
-                    '<span class="badge bg-success-subtle text-success px-3 rounded-pill">Active</span>' : 
-                    '<span class="badge bg-secondary-subtle text-secondary px-3 rounded-pill">Inactive</span>';
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="ps-4 fw-bold">#${r.id}</td>
-                        <td>${r.username}</td>
-                        <td>${r.email}</td>
-                        <td>${contact}</td>
-                        <td>${statusBadge}</td>
-                    </tr>
-                `;
-            });
-        }
-    } catch (error) {
-        console.error("Fleet Rider Polling Fault:", error);
-    }
-}
-
-// Global Polling Operations
-setInterval(() => {
-    const reportsPane = document.getElementById('reports');
-    if(reportsPane && reportsPane.classList.contains('active-section')) {
-        fetchReportData(currentReportPeriod);
-    }
-
-    const ridersPane = document.getElementById('riders');
-    if(ridersPane && ridersPane.classList.contains('active-section')) {
-        fetchRidersData();
-    }
-}, 5000);
-
-document.addEventListener('DOMContentLoaded', () => { fetchReportData('daily'); initializeAIObjectDetection(); });
-
-/* ADMIN AI VISION & WEBSOCKET PIPELINE - LISTENS TO RIDER STREAM */
-let adminStreamSocket = null;
-let currentTargetRider = null;
-
-function launchLiveAIMonitor(riderName) {
-    const aiPanel = document.getElementById('integrated-ai-panel');
-    if(aiPanel) {
-        aiPanel.classList.remove('d-none');
-        document.getElementById('aiActiveTarget').innerHTML = `<i class="bi bi-person-badge me-2"></i>${riderName}`;
-        currentTargetRider = riderName;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-}
-
-function closeGlobalAIMonitor() {
-    document.getElementById('integrated-ai-panel').classList.add('d-none');
-    document.getElementById('aiAnomalyWarning').classList.add('d-none');
-    currentTargetRider = null;
-}
-
-function initializeAIObjectDetection() {
-    connectAdminStream();
-}
-
-function connectAdminStream() {
-    if(adminStreamSocket) return;
-    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
-    const wsUrl = wsScheme + window.location.host + "/ws/live-monitoring/";
-    
-    adminStreamSocket = new WebSocket(wsUrl);
-    
-    adminStreamSocket.onmessage = function(e) {
-        const payload = JSON.parse(e.data);
-        
-        if (payload.stream && (!currentTargetRider || payload.rider === currentTargetRider)) {
-            // Update Dashboard Monitor feed
-            const dashFeed = document.getElementById('aiMonitorVideo');
-            if (dashFeed) dashFeed.src = payload.stream;
-            
-            // Update Map Modal feed
-            const modalFeed = document.getElementById('modalPOVVideo');
-            if (modalFeed) modalFeed.src = payload.stream;
-            
-            // Process Rider AI Bounding Box Data
-            if (payload.predictions) {
-                const label = document.getElementById('detectedObjects');
-                const anomalyWarning = document.getElementById('aiAnomalyWarning');
-                const anomalyMsg = document.getElementById('aiAnomalyMessage');
-                
-                let items = [];
-                let anomalyDetected = false;
-
-                payload.predictions.forEach(p => {
-                    const detectedClass = p.class.toLowerCase();
-                    items.push(`${p.class} (${Math.round(p.score*100)}%)`);
                     
-                    if (['person', 'cell phone'].includes(detectedClass)) {
-                        anomalyDetected = true;
-                        if(anomalyMsg) anomalyMsg.innerHTML = `Unauthorized <strong>${p.class}</strong> detected in operational field of view!`;
-                    }
-                });
+                    <div class="camera-container mb-3 bg-black d-flex align-items-center justify-content-center">
+                        <span id="aiLabel" class="badge bg-secondary ai-status-badge"><i class="bi bi-eye-slash-fill me-1"></i> Stream Offline</span>
+                        
+                        <div id="streamStandbyMsg" class="text-center text-muted p-4 d-none" style="z-index: 2;">
+                            <i class="bi bi-shield-slash fs-1 text-secondary-subtle d-block mb-2"></i>
+                            <small class="d-block font-monospace text-uppercase tracking-wider text-white-50" style="font-size: 11px;">Automated Safety Lock</small>
+                            <span class="small text-secondary">Feed triggers when shipment state turns <b>In Transit</b></span>
+                        </div>
 
-                if(label) {
-                    label.innerHTML = items.length ? items.map(i => `<span class='badge bg-black border border-secondary text-warning me-1 mb-1'>${i}</span>`).join('') : 'Scanning payload signatures...';
-                }
+                        <video id="webcamView" autoplay playsinline muted></video>
+                        <canvas id="aiCanvas"></canvas>
+                    </div>
 
-                if (anomalyWarning) {
-                    if (anomalyDetected) {
-                        anomalyWarning.classList.remove('d-none');
-                    } else {
-                        anomalyWarning.classList.add('d-none');
-                    }
-                }
-            }
-        }
-    };
+                    <div class="row g-2 mt-3 pt-3 border-top text-center">
+                        <div class="col-4">
+                            <small class="text-muted d-block font-monospace mb-1" style="font-size: 10px;">FRAME RATE</small>
+                            <span id="telemetryFps" class="fw-bold text-dark" style="font-size: 14px;"><i class="bi bi-lightning text-muted"></i> 0 FPS</span>
+                        </div>
+                        <div class="col-4 border-start border-end">
+                            <small class="text-muted d-block font-monospace mb-1" style="font-size: 10px;">BANDWIDTH</small>
+                            <span id="telemetryBandwidth" class="fw-bold text-dark" style="font-size: 14px;"><i class="bi bi-cloud-arrow-up text-muted"></i> 0.0 Mb/s</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block font-monospace mb-1" style="font-size: 10px;">STATE LINK</small>
+                            <span id="telemetryState" class="fw-bold text-dark" style="font-size: 12px;"><i class="bi bi-lock-fill text-secondary"></i> LOCKED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    adminStreamSocket.onclose = function() {
-        adminStreamSocket = null;
-        setTimeout(connectAdminStream, 5000);
-    };
-}
+            <div class="col-lg-7">
+                <div class="card-box">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <h6 class="fw-bold text-dark m-0"><i class="bi bi-clock-history text-primary me-2"></i>Chronological Event Feed</h6>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill">Real-time Tracker</span>
+                    </div>
 
-/* LEAFLET MAPPING ENGINE - WITH DESTINATION MARKERS */
-let adminMap, routeControl, destinationMarkerLayer;
-let warningSoundMap = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+                    <div class="timeline-logs" id="live-timeline-logs">
+                    {% if deliveries %}
+                        {% for d in deliveries|slice:":10" %}
+                            <div class="timeline-item" id="timeline-item-{{ d.id }}">
+                                <div class="timeline-icon {% if d.status == 'Delivered' %}border-success text-success{% elif d.status == 'In Transit' %}border-info text-info{% elif d.status == 'Waiting Confirmation' %}border-warning text-warning{% else %}border-secondary text-muted{% endif %}" id="timeline-icon-{{ d.id }}">
+                                    {% if d.status == "Delivered" %}
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    {% elif d.status == "In Transit" %}
+                                        <i class="bi bi-play-circle-fill"></i>
+                                    {% elif d.status == "Waiting Confirmation" %}
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-hourglass-split"></i>
+                                    {% endif %}
+                                </div>
 
-function openMapModal(customer, rider, address, lat, lng, expectedLat, expectedLng) {
-    const mapInfo = document.getElementById('mapInfo');
-    const mapWarning = document.getElementById('mapWarning');
-    document.getElementById('mapModalLabel').innerHTML = `<i class="bi bi-geo-alt-fill text-info me-2"></i>Live Vectors: ${customer}`;
-    currentTargetRider = rider; // Auto-attach video feed to this rider for the modal
+                                <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                                    <div>
+                                        <span class="text-dark fw-semibold d-block mb-1" style="font-size: 14.5px;">
+                                            Delivery Manifest <b class="text-primary">#{{ d.id }}</b> state flagged as 
+                                            <span id="timeline-badge-{{ d.id }}" class="badge {% if d.status == 'Delivered' %}bg-success-subtle text-success{% elif d.status == 'In Transit' %}bg-info-subtle text-info{% else %}bg-warning-subtle text-warning{% endif %} px-2 py-0.5 small fw-medium text-capitalize">
+                                                {{ d.status }}
+                                            </span>
+                                        </span>
+                                        <p class="text-muted small mb-0 d-flex align-items-center gap-1">
+                                            <i class="bi bi-geo-alt-fill text-danger" style="font-size: 11px;"></i> To address: <span class="text-truncate d-inline-block" style="max-width: 250px;">{{ d.address }}</span>
+                                        </p>
+                                    </div>
+                                    <small class="text-muted font-monospace text-end d-block" style="font-size: 11px;">
+                                        <i class="bi bi-stopwatch me-1"></i>{{ d.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-5" id="timeline-empty-msg">
+                            <i class="bi bi-hdd-network fs-1 d-block mb-2 text-secondary-subtle"></i>
+                            <h6 class="fw-bold text-dark">No Core Historical Operations</h6>
+                            <p class="small text-muted mb-0">State modifications logged on assigned shipments will pop up chronologically here.</p>
+                        </div>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    mapInfo.innerHTML = `
-      <div class="row w-100 g-2">
-          <div class="col-sm-6"><strong>Target Client:</strong> <span class="text-primary">${customer}</span></div>
-          <div class="col-sm-6"><strong>Courier Pilot:</strong> ${rider}</div>
-          <div class="col-12"><strong>Drop Node Address:</strong> <br><i class="bi bi-pin-map-fill text-danger me-1"></i>${address}</div>
-      </div>
-    `;
-    mapWarning.classList.add('d-none'); mapWarning.textContent = '';
+    <div id="profile" class="section">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'success' }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-alert="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
 
-    if (!adminMap) {
-        adminMap = L.map('map').setView([lat, lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(adminMap);
+        <h4 class="fw-bold mb-1 text-dark">Rider Profile</h4>
+        <small class="text-muted mb-4 d-block">Manage your personal information, address, and account security.</small>
+        
+        <div class="row g-4">
+            <div class="col-xl-4 col-lg-5">
+                <div class="card-box text-center h-100">
+                    <div class="position-relative d-inline-block mb-3 mt-2">
+                        {% if request.user.profile_picture %}
+                            <img src="{{ request.user.profile_picture.url }}" class="rounded-circle img-thumbnail shadow-sm" width="140" height="140" style="object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary-subtle text-primary d-inline-flex justify-content-center align-items-center rounded-circle shadow-sm" style="width:140px; height:140px; font-size:55px;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        {% endif %}
+                        <form action="" method="POST" enctype="multipart/form-data" id="profilePicForm" class="m-0 p-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action_type" value="update_profile_picture">
+                            <input type="file" id="profilePicInput" name="profile_picture" class="d-none" accept="image/*" onchange="document.getElementById('profilePicForm').submit();">
+                            <label for="profilePicInput" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle shadow d-flex justify-content-center align-items-center" style="width: 36px; height: 36px; cursor: pointer;" title="Update Photo">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                        </form>
+                    </div>
+                    
+                    <h4 class="fw-bold text-dark mb-1">{{ request.user.first_name }} {{ request.user.last_name }}</h4>
+                    <p class="text-muted mb-3"><i class="bi bi-at text-primary"></i>{{ request.user.username }}</p>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill"><i class="bi bi-shield-check me-1"></i>Verified Courier</span>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between text-start mb-3">
+                        <span class="text-muted fw-medium"><i class="bi bi-calendar-check text-secondary me-2"></i>Joined</span>
+                        <span class="text-dark fw-bold">{{ request.user.date_joined|date:"M Y"|default:"Recently" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-start mb-3">
+                        <span class="text-muted fw-medium"><i class="bi bi-star-fill text-warning me-2"></i>Rating</span>
+                        <span class="text-dark fw-bold">4.9 <span class="text-muted small">/ 5.0</span></span>
+                    </div>
+                    <div class="d-flex justify-content-between text-start mb-3">
+                        <span class="text-muted fw-medium"><i class="bi bi-box-seam text-info me-2"></i>Total Drops</span>
+                        <span class="text-dark fw-bold sync-delivered-count">{{ delivered_count|default:"0" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-start">
+                        <span class="text-muted fw-medium"><i class="bi bi-shield-lock text-danger me-2"></i>Tier</span>
+                        <span class="text-dark fw-bold">Official Fleet</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-8 col-lg-7">
+                <div class="card-box p-4 h-100">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-person-lines-fill text-primary me-2"></i>Edit Profile Details</h5>
+                    
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action_type" value="update_profile">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">First Name</label>
+                                <input type="text" name="first_name" class="form-control bg-light" value="{{ request.user.first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Last Name</label>
+                                <input type="text" name="last_name" class="form-control bg-light" value="{{ request.user.last_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="email" class="form-control bg-light" value="{{ request.user.email }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" name="phone_number" class="form-control bg-light" value="{{ request.user.phone_number|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="bi bi-geo-alt"></i></span>
+                                    <input type="text" name="address" class="form-control bg-light" placeholder="Enter your full address" value="{{ request.user.address|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="bi bi-shield-lock"></i></span>
+                                    <input type="password" name="password" class="form-control bg-light" placeholder="Enter a new password to change (leave blank to keep current)">
+                                </div>
+                            </div>
+                            <div class="col-12 mt-4 text-end border-top pt-3">
+                                <button type="submit" class="btn btn-primary px-4 fw-medium"><i class="bi bi-floppy-fill me-2"></i>Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const transitCount = parseInt("{{ in_transit_count|default:0 }}");
+
+// Viewport Persistence: Loads the active section if available, otherwise defaults to Dashboard
+document.addEventListener("DOMContentLoaded", () => {
+    const hasMessages = document.querySelector('.alert') !== null;
+    let savedSection = localStorage.getItem('activeRiderSection') || 'dashboard';
+
+    if (hasMessages) {
+        savedSection = 'profile';
+    }
+
+    const menuEl = document.getElementById('menu-' + savedSection);
+    if (menuEl) {
+        showSection(savedSection, menuEl);
     } else {
-        adminMap.setView([lat, lng], 14);
-        if (routeControl) { adminMap.removeControl(routeControl); routeControl = null; }
-        if (destinationMarkerLayer) { adminMap.removeLayer(destinationMarkerLayer); }
-        adminMap.eachLayer(layer => { if (layer instanceof L.Marker) adminMap.removeLayer(layer); });
+        showSection('dashboard', document.getElementById('menu-dashboard'));
     }
 
-    const dist = getDistanceFromLatLonInKm(lat, lng, expectedLat, expectedLng);
-    if(dist > 0.5) {
-        mapWarning.classList.remove('d-none');
-        mapWarning.innerHTML = `⚠️ Anomaly: Courier off route grid by <strong>${dist.toFixed(2)}km</strong>!`;
-        warningSoundMap.play().catch(()=>{});
-    }
-
-    const destIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: "<div style='background-color:#dc3545; width:15px; height:15px; border-radius:50%; border:3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);'></div>",
-        iconSize: [15, 15],
-        iconAnchor: [7, 7]
-    });
-    destinationMarkerLayer = L.marker([expectedLat, expectedLng], {icon: destIcon})
-        .bindPopup(`<b>Destination:</b><br>${address}`)
-        .addTo(adminMap);
-
-    routeControl = L.Routing.control({
-        waypoints: [L.latLng(lat, lng), L.latLng(expectedLat, expectedLng)],
-        show: false, addWaypoints: false, fitSelectedRoute: true,
-        router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-        lineOptions: { styles: [{ color: '#0dcaf0', opacity: 0.8, weight: 5 }] },
-        createMarker: function() { return null; } 
-    }).addTo(adminMap);
-
-    new bootstrap.Modal(document.getElementById('mapModal')).show();
-    setTimeout(() => { if(adminMap) adminMap.invalidateSize(); }, 300);
-}
-
-document.getElementById('mapModal').addEventListener('hidden.bs.modal', function () {
-    currentTargetRider = null;
-    const m = document.getElementById('modalPOVVideo');
-    if (m) m.src = "";
+    // Initialize Global real-time dynamic sync listeners
+    initLiveSyncAgent();
 });
 
-function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
-    const R = 6371; const dLat = (lat2-lat1)*(Math.PI/180); const dLon = (lon2-lon1)*(Math.PI/180);
-    const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+function showSection(sectionId, element) {
+    localStorage.setItem('activeRiderSection', sectionId);
+
+    document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active-section');
+    });
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active-menu');
+    });
+
+    const activeSec = document.getElementById(sectionId);
+    if(activeSec) activeSec.classList.add('active-section');
+    if(element) element.classList.add('active-menu');
+
+    let title = "Rider Dashboard";
+    let headingIcon = '<i class="bi bi-grid-1x2-fill text-primary me-2"></i>';
+    
+    if(sectionId === 'deliveries') {
+        title = "Active Manifest Registry";
+        headingIcon = '<i class="bi bi-box-seam-fill text-primary me-2"></i>';
+    }
+    if(sectionId === 'activity') {
+        title = "Operational Performance Logs";
+        headingIcon = '<i class="bi bi-clock-history text-primary me-2"></i>';
+    }
+    if(sectionId === 'profile') {
+        title = "Rider Profile & Settings";
+        headingIcon = '<i class="bi bi-person text-primary me-2"></i>';
+    }
+    document.getElementById('breadcrumb').innerHTML = headingIcon + title;
+
+    if(sectionId === 'activity') {
+        setTimeout(() => {
+            if(transitCount > 0) {
+                if(!localStream) startCameraSystem();
+            } else {
+                showStreamStandbyUI();
+            }
+        }, 300);
+    } else {
+        stopCameraSystem();
+    }
+
+    if(window.innerWidth <= 992) {
+        toggleSidebar();
+    }
 }
 
-/* CHART.JS ANALYTICS */
-document.addEventListener("DOMContentLoaded", function() {
-    const ctx = document.getElementById('deliveryPerformanceChart');
-    if (ctx && {{ deliveries|default:0 }} > 0) {
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Delivered', 'In Transit', 'Pending'],
-                datasets: [{
-                    data: [{{ delivered_count|default:0 }}, {{ transit_count|default:0 }}, {{ pending_count|default:0 }}],
-                    backgroundColor: ['#198754', '#0dcaf0', '#dc3545'], borderWidth: 0
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom' } } }
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('show');
+}
+
+// ======================== REAL TIME SMART DRIVER STREAM EYE AGENT ========================
+let localStream = null;
+let aiModel = null;
+let streamInterval = null;
+let webSocket = null;
+
+function showStreamStandbyUI() {
+    const videoEl = document.getElementById('webcamView');
+    const canvasEl = document.getElementById('aiCanvas');
+    const labelEl = document.getElementById('aiLabel');
+    const standbyMsg = document.getElementById('streamStandbyMsg');
+    
+    if(videoEl) videoEl.style.display = 'none';
+    if(canvasEl) canvasEl.style.display = 'none';
+    if(standbyMsg) standbyMsg.classList.remove('d-none');
+    
+    if(labelEl) {
+        labelEl.innerHTML = `<i class="bi bi-shield-lock-fill me-1"></i> Telemetry Suspended`;
+        labelEl.className = "badge bg-secondary ai-status-badge";
+    }
+
+    document.getElementById('telemetryFps').innerHTML = `<i class="bi bi-lightning-fill text-muted"></i> 0 FPS`;
+    document.getElementById('telemetryBandwidth').innerHTML = `<i class="bi bi-cloud-arrow-up text-muted"></i> 0.0 Mb/s`;
+    document.getElementById('telemetryState').innerHTML = `<i class="bi bi-lock-fill text-warning"></i> STANDBY`;
+}
+
+async function startCameraSystem() {
+    const videoEl = document.getElementById('webcamView');
+    const canvasEl = document.getElementById('aiCanvas');
+    const labelEl = document.getElementById('aiLabel');
+    const standbyMsg = document.getElementById('streamStandbyMsg');
+
+    if (!videoEl) return; 
+
+    try {
+        if(standbyMsg) standbyMsg.classList.add('d-none');
+        videoEl.style.display = 'block';
+        if(canvasEl) canvasEl.style.display = 'block';
+
+        labelEl.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Loading Models...`;
+        labelEl.className = "badge bg-warning text-dark ai-status-badge";
+        
+        if(!aiModel){
+            aiModel = await cocoSsd.load();
+        }
+
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 480, height: 360, facingMode: "user" },
+            audio: false
+        });
+        
+        videoEl.srcObject = localStream;
+        labelEl.innerHTML = `<i class="bi bi-record-circle-fill text-danger blink me-1"></i> AI EYE ACTIVE`;
+        labelEl.className = "badge bg-dark border border-danger text-white ai-status-badge";
+
+        document.getElementById('telemetryFps').innerHTML = `<i class="bi bi-lightning-fill text-warning"></i> 60 FPS`;
+        document.getElementById('telemetryBandwidth').innerHTML = `<i class="bi bi-cloud-arrow-up text-info"></i> 0.6 Mb/s`;
+        document.getElementById('telemetryState').innerHTML = `<i class="bi bi-activity text-success"></i> STREAMING`;
+
+        const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+        webSocket = new WebSocket(`${wsScheme}${window.location.host}/ws/live-monitoring/`);
+
+        videoEl.onloadedmetadata = () => {
+            if(canvasEl) {
+                canvasEl.width = 480;
+                canvasEl.height = 360;
+            }
+            streamInterval = setInterval(processVideoFrameFeed, 160); 
+        };
+
+    } catch (err) {
+        console.error("Camera entry permission blocked:", err);
+        labelEl.innerHTML = `<i class="bi bi-exclamation-octagon-fill me-1"></i> Permission Denied`;
+        labelEl.className = "badge bg-danger ai-status-badge";
+        showStreamStandbyUI();
+    }
+}
+
+function stopCameraSystem() {
+    if (streamInterval) clearInterval(streamInterval);
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    if (webSocket) {
+        webSocket.close();
+        webSocket = null;
+    }
+
+    const videoEl = document.getElementById('webcamView');
+    if (videoEl) videoEl.srcObject = null;
+    
+    const canvasEl = document.getElementById('aiCanvas');
+    if (canvasEl) {
+        const ctx = canvasEl.getContext('2d');
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    }
+}
+
+async function processVideoFrameFeed() {
+    const videoEl = document.getElementById('webcamView');
+    const canvasEl = document.getElementById('aiCanvas');
+    if (!videoEl || !canvasEl || !aiModel) return;
+
+    const ctx = canvasEl.getContext('2d');
+    let framePredictions = [];
+    
+    if (videoEl.readyState === 4) {
+        const predictions = await aiModel.detect(videoEl);
+        
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+        
+        const parcelClasses = ['suitcase', 'backpack', 'handbag', 'book', 'box', 'package', 'cell phone', 'laptop'];
+        const safeHumanClasses = ['person', 'bicycle', 'car', 'motorcycle', 'bus', 'truck', 'traffic light', 'stop sign'];
+
+        predictions.forEach(prediction => {
+            let label = prediction.class;
+            let strokeColor = "#00FF00"; 
+            
+            if (parcelClasses.includes(label.toLowerCase())) {
+                label = `📦 Parcel: ${label}`;
+                strokeColor = "#0d6efd"; 
+            } else if (!safeHumanClasses.includes(label.toLowerCase())) {
+                label = `⚠️ Anomaly: ${label}`;
+                strokeColor = "#dc3545"; 
+            }
+
+            framePredictions.push({
+                class: prediction.class,
+                score: prediction.score
+            });
+
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 3;
+            ctx.font = "bold 14px Segoe UI, sans-serif";
+            
+            ctx.beginPath();
+            ctx.rect(...prediction.bbox);
+            ctx.stroke();
+            
+            const textWidth = ctx.measureText(`${label} (${Math.round(prediction.score * 100)}%)`).width;
+            ctx.fillStyle = strokeColor;
+            ctx.fillRect(prediction.bbox[0], (prediction.bbox[1] > 20 ? prediction.bbox[1] - 22 : 0), textWidth + 10, 20);
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(
+                `${label} (${Math.round(prediction.score * 100)}%)`,
+                prediction.bbox[0] + 5, 
+                prediction.bbox[1] > 20 ? prediction.bbox[1] - 7 : 14
+            );
         });
     }
+
+    const transmissionCanvas = document.createElement('canvas');
+    transmissionCanvas.width = 480;
+    transmissionCanvas.height = 360;
+    const tCtx = transmissionCanvas.getContext('2d');
+    
+    tCtx.translate(480, 0);
+    tCtx.scale(-1, 1);
+    
+    tCtx.drawImage(videoEl, 0, 0, 480, 360);
+    tCtx.drawImage(canvasEl, 0, 0, 480, 360);
+    
+    const compressedFrame = transmissionCanvas.toDataURL('image/jpeg', 0.5); 
+
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+        webSocket.send(JSON.stringify({
+            'stream': compressedFrame,
+            'rider': "{{ request.user.username }}",
+            'predictions': framePredictions
+        }));
+    }
+}
+
+// ======================== CUSTOMER DROP CONFIRMATION REAL-TIME AGENT ========================
+function initLiveSyncAgent() {
+    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    // Connects to a standard updates channel, or falls back to polling smoothly
+    const syncSocket = new WebSocket(`${wsScheme}${window.location.host}/ws/delivery-updates/`);
+
+    syncSocket.onmessage = function(event) {
+        const messageData = JSON.parse(event.data);
+        if (messageData.type === "delivery_status_update" || messageData.status === "Delivered") {
+            executeDOMDeliveryUpdate(messageData.delivery_id, messageData.status, messageData.metrics);
+        }
+    };
+
+    syncSocket.onerror = function() {
+        console.warn("Status WebSocket error. Initializing dynamic live polling backup fallback loop.");
+        startPollingSyncFallback();
+    };
+    
+    syncSocket.onclose = function() {
+        startPollingSyncFallback();
+    };
+}
+
+// Backup Short-Polling Engine ensures updates succeed regardless of Channels config
+let pollingActive = false;
+function startPollingSyncFallback() {
+    if (pollingActive) return;
+    pollingActive = true;
+    setInterval(async () => {
+        try {
+            const response = await fetch(window.location.pathname + "?format=json");
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.deliveries) {
+                    data.deliveries.forEach(del => {
+                        executeDOMDeliveryUpdate(del.id, del.status, data.metrics);
+                    });
+                }
+            }
+        } catch (err) {
+            console.debug("Polling sync temporary timeout:", err);
+        }
+    }, 4000);
+}
+
+function executeDOMDeliveryUpdate(deliveryId, newStatus, currentMetrics) {
+    // 1. Update the Card Frame Style if present
+    const cardBox = document.getElementById(`delivery-card-box-${deliveryId}`);
+    if (cardBox) {
+        cardBox.className = `card-box h-100 delivery-card status-${newStatus.toLowerCase().replace(' ', '-')}`;
+    }
+
+    // 2. Update Status Badge text & classes
+    const badgeContainer = document.getElementById(`delivery-badge-${deliveryId}`);
+    if (badgeContainer) {
+        if (newStatus === "Delivered") {
+            badgeContainer.innerHTML = `<span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-medium"><i class="bi bi-check2-circle me-1"></i>Delivered</span>`;
+        } else if (newStatus === "In Transit") {
+            badgeContainer.innerHTML = `<span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill fw-medium"><i class="bi bi-arrow-repeat spin me-1"></i>In Transit</span>`;
+        }
+    }
+
+    // 3. Update Action Buttons to match finalized lifecycle state
+    const actionsContainer = document.getElementById(`delivery-actions-${deliveryId}`);
+    if (actionsContainer && newStatus === "Delivered") {
+        actionsContainer.innerHTML = `<button class="btn btn-light btn-sm action-bar-btn px-3 border" disabled><i class="bi bi-shield-lock-fill text-muted"></i> Log Finalized</button>`;
+    }
+
+    // 4. Update Chronological Feed Timeline Items
+    const timelineBadge = document.getElementById(`timeline-badge-${deliveryId}`);
+    const timelineIcon = document.getElementById(`timeline-icon-${deliveryId}`);
+    if (timelineBadge) {
+        timelineBadge.className = "badge bg-success-subtle text-success px-2 py-0.5 small fw-medium text-capitalize";
+        timelineBadge.innerText = newStatus;
+    }
+    if (timelineIcon) {
+        timelineIcon.className = "timeline-icon border-success text-success";
+        timelineIcon.innerHTML = `<i class="bi bi-patch-check-fill"></i>`;
+    }
+
+    // 5. Update Global Quantitative Counters & Progress Indicators dynamically
+    if (currentMetrics) {
+        document.querySelectorAll('.sync-delivery-count').forEach(el => el.innerText = currentMetrics.delivery_count);
+        document.querySelectorAll('.sync-transit-count').forEach(el => el.innerText = currentMetrics.in_transit_count);
+        document.querySelectorAll('.sync-delivered-count').forEach(el => el.innerText = currentMetrics.delivered_count);
+        
+        const syncPending = document.getElementById('sync-pending-count');
+        if (syncPending) syncPending.innerText = currentMetrics.pending_count;
+
+        const badgePend = document.getElementById('manifest-badge-pending');
+        const badgeTran = document.getElementById('manifest-badge-transit');
+        if (badgePend) badgePend.innerText = currentMetrics.pending_count;
+        if (badgeTran) badgeTran.innerText = currentMetrics.in_transit_count;
+
+        // Animate progress percentages seamlessly
+        if (currentMetrics.delivery_count > 0) {
+            const compPct = Math.round((currentMetrics.delivered_count / currentMetrics.delivery_count) * 100);
+            const payloadPct = Math.round((currentMetrics.in_transit_count / currentMetrics.delivery_count) * 100);
+
+            const compTxt = document.getElementById('completion-rate-text');
+            const compBar = document.getElementById('completion-rate-bar');
+            if (compTxt) compTxt.innerText = compPct + "%";
+            if (compBar) compBar.style.width = compPct + "%";
+
+            const payTxt = document.getElementById('payload-rate-text');
+            const payBar = document.getElementById('payload-rate-bar');
+            if (payTxt) payTxt.innerText = payloadPct + "%";
+            if (payBar) payBar.style.width = payloadPct + "%";
+        }
+        
+        // Re-check assignment active banner
+        const statusBanner = document.getElementById('active-route-status-container');
+        if (statusBanner) {
+            if (currentMetrics.in_transit_count > 0) {
+                statusBanner.innerHTML = `<small class="text-muted d-block font-monospace" style="font-size:11px;">CURRENT ASSIGNMENT STATUS</small><span class="badge bg-info text-white" id="route-badge-active"><i class="bi bi-truck me-1"></i>On active route</span>`;
+            } else {
+                statusBanner.innerHTML = `<small class="text-muted d-block font-monospace" style="font-size:11px;">CURRENT ASSIGNMENT STATUS</small><span class="badge bg-secondary text-white" id="route-badge-active"><i class="bi bi-house me-1"></i>Awaiting Dispatch</span>`;
+            }
+        }
+    }
+}
+
+// ======================== LIVE SYNC FOR ADMIN DASHBOARD CONTAINER ========================
+document.addEventListener("DOMContentLoaded", () => {
+    connectAdminLiveSyncAgent();
 });
+
+function connectAdminLiveSyncAgent() {
+    const scheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const socketUrl = `${scheme}${window.location.host}/ws/delivery-updates/`;
+    const adminSocket = new WebSocket(socketUrl);
+
+    adminSocket.onmessage = function(e) {
+        const payload = JSON.parse(e.data);
+        if (payload.type === "delivery_status_update" || payload.status === "Delivered") {
+            applyAdminDOMUpdates(payload.delivery_id, payload.status, payload.metrics);
+        }
+    };
+
+    adminSocket.onerror = () => startAdminPollingFallback();
+    adminSocket.onclose = () => startAdminPollingFallback();
+}
+
+function startAdminPollingFallback() {
+    setInterval(async () => {
+        try {
+            // Requests systemic status context back from current view context as JSON format
+            const res = await fetch(window.location.pathname + "?format=json");
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.deliveries) {
+                    data.deliveries.forEach(del => {
+                        applyAdminDOMUpdates(del.id, del.status, data.metrics);
+                    });
+                }
+            }
+        } catch (error) {
+            console.debug("Admin sync temporary connection delay:", error);
+        }
+    }, 4500);
+}
+
+function applyAdminDOMUpdates(deliveryId, updatedStatus, updatedMetrics) {
+    // 1. Dynamically target and update the main state text fields inside rows
+    const textStatus = document.getElementById(`admin-status-text-${deliveryId}`);
+    if (textStatus) {
+        textStatus.innerText = updatedStatus;
+        
+        // Dynamically style based on string configuration values
+        if (updatedStatus === "Delivered") {
+            textStatus.className = "badge bg-success-subtle text-success px-2.5 py-1.5 rounded text-uppercase";
+        } else if (updatedStatus === "In Transit") {
+            textStatus.className = "badge bg-info-subtle text-info px-2.5 py-1.5 rounded text-uppercase";
+        }
+    }
+
+    // 2. Adjust or disable the action dropdown rows if needed
+    const rowEl = document.getElementById(`admin-row-${deliveryId}`);
+    if (rowEl && updatedStatus === "Delivered") {
+        rowEl.classList.add("table-success-subtle"); // Highlights row green on modification
+    }
+
+    // 3. Update the global metrics tracking card summaries across the administrator layout counters
+    if (updatedMetrics) {
+        const adminTotalDel = document.getElementById("admin-total-delivered");
+        const adminInTransit = document.getElementById("admin-active-transit");
+        const adminPending = document.getElementById("admin-pending-dispatch");
+
+        if (adminTotalDel) adminTotalDel.innerText = updatedMetrics.delivered_count;
+        if (adminInTransit) adminInTransit.innerText = updatedMetrics.in_transit_count;
+        if (adminPending) adminPending.innerText = updatedMetrics.pending_count;
+    }
+}
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -136,3 +136,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media File System Configurations (User Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(os.environ.get('REDIS_URL', 'redis://localhost:6379'))],
+        },
+    },
+}
